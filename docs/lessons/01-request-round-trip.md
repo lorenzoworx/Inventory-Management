@@ -76,7 +76,9 @@ npm run dev -w @ims/web
 
 Open the page, stop only Terminal A with Ctrl+C, and click **Check again**. Vite may return an HTTP 500 because its proxy cannot reach Express. That is different from the browser itself being unable to make a network connection. Restart Terminal A and click **Try again**. Describe why a full page reload was unnecessary.
 
-## Your coding exercise — intentionally unfinished
+## Your coding exercise — message from the server
+
+Status: implemented by the learner and verified. The instructions below remain as a record of the exercise.
 
 Add a `message` string to the health response and display it on the page. Use the text **Ready to build the catalog.**
 

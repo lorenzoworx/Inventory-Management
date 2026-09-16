@@ -32,7 +32,7 @@ Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API
 curl -i http://127.0.0.1:4000/api/health
 ```
 
-The response is HTTP 200 with JSON containing `status`, `service`, and `checkedAt`. This is an API process check, not a database readiness check. Unknown `/api` routes return a JSON 404.
+The response is HTTP 200 with JSON containing `status`, `service`, `checkedAt`, and `message`. The page displays the message supplied by Express. This is an API process check, not a database readiness check. Unknown `/api` routes return a JSON 404.
 
 ## Checks
 

@@ -26,6 +26,6 @@ These answers belong to the learner. Implementation progress and understanding a
 
 - Current lesson: 1.
 - Implementation: connection-check app and prototype documentation complete; lint, type checks, production build, and nine browser checks passed locally.
-- Learner exercise: pending.
-- Explain-back discussion: pending.
-- Next milestone: product catalog and SQL, after the exercise and discussion.
+- Learner exercise: implemented by the learner and verified; the required message is sent by Express and rendered by React. The full check suite passes.
+- Explain-back discussion: started; the learner identified the schema/response mismatch. Request transport versus response validation was discussed. Written answers above remain for the learner to complete.
+- Next milestone: product catalog and SQL, beginning with the distinction between a product and its quantity at a store.

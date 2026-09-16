@@ -76,7 +76,7 @@ export function App() {
           <div className="connection-body">
             <div className="connection-description">
               <p>
-                {connection.phase === "connected" && "The browser received a valid response from the inventory API."}
+                {connection.phase === "connected" && connection.data.message}
                 {connection.phase === "loading" && "Waiting for the inventory API to respond."}
                 {connection.phase === "error" && connection.message}
               </p>

@@ -9,7 +9,8 @@ export function createApp(webDirectory?: string) {
     const health: HealthResponse = {
       status: "ok",
       service: "uba-inventory-api",
-      checkedAt: new Date().toISOString()
+      checkedAt: new Date().toISOString(),
+      message: "Ready to build the catalog."
     };
 
     response.set("Cache-Control", "no-store").json(health);
