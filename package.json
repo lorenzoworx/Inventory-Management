@@ -1,0 +1,33 @@
+{
+  "name": "inventory-management",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "npm run build -w @ims/contracts && concurrently --kill-others --names api,web \"npm run dev -w @ims/api\" \"npm run dev -w @ims/web\"",
+    "build": "npm run build -w @ims/contracts && npm run build -w @ims/api && npm run build -w @ims/web",
+    "start": "NODE_ENV=production npm run start -w @ims/api",
+    "typecheck": "npm run build -w @ims/contracts && tsc -p tsconfig.tools.json && npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "test": "npm run build && playwright test",
+    "test:ui": "npm run build && playwright test --ui",
+    "check": "npm run lint && npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.0"
+  }
+}

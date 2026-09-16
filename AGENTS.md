@@ -1,0 +1,16 @@
+# Working on this learning project
+
+This is a guided rebuild of an AI-assisted inventory prototype. The owner is a CS graduate learning web fundamentals through React, Express, and SQL.
+
+- Implement only the requested milestone. The initial session ends at milestone 1; the remaining roadmap is not a request to build ahead.
+- Explain the relevant concept and the request/data flow before expanding the implementation.
+- Give the owner a small exercise and a chance to explain the result. Leave their learning-note answers for them to write.
+- Add dependencies and abstractions when a feature requires them. Avoid placeholder business modules.
+- Use TypeScript, ordinary CSS, parameterized PostgreSQL queries through pg, and handwritten SQL migrations. This repository does not use Next.js or Prisma.
+- The original project in /Users/lorenzoworx/Downloads/ubaInventory is reference material. Do not modify it as part of this rebuild.
+- Keep documentation honest about implemented features, uncompleted exercises, and planned work.
+- Review and test focused changes before making an ordinary commit. Preserve actual authorship and commit dates.
+- Run npm run check for application changes. It builds and tests the production app. Use a separate test database when database features are introduced.
+- Never commit credentials, real store data, .env files, or build outputs.
+
+See docs/roadmap.md for scope and docs/lessons/01-request-round-trip.md for the current lesson.
