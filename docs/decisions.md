@@ -23,3 +23,9 @@ When stock features arrive, all quantity changes must pass through one transacti
 ## 006 — Demonstrate real progress
 
 The repository records a guided AI-assisted rebuild with ordinary commits made after verification. Learner exercises remain separate and are not completed on the learner's behalf. Documentation distinguishes a working implementation from a completed learning checkpoint.
+
+## 007 — Learn the catalog in SQL before exposing it through HTTP
+
+Milestone 2a introduces categories and products, a versioned handwritten SQL migration, and repeatable fictional seed data. Integer identity keys make relationships easy to inspect while SKUs remain unique business identifiers. Store balances are a later feature. Money is stored as numeric(12, 2), returned by pg as strings, and will be validated at the HTTP boundary when that boundary is introduced.
+
+The existing local PostgreSQL 18 installation runs an isolated project cluster on loopback port 5433. Development and test databases are separate. The helper is local tooling; it does not configure the future container deployment. Vitest verifies database behavior directly, with rollback after each test. Playwright continues to verify the existing HTTP/browser flow.

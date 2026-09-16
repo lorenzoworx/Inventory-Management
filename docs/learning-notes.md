@@ -22,10 +22,22 @@ These answers belong to the learner. Implementation progress and understanding a
 - My explanation of the diff before committing:
 - One question I still have:
 
+## Milestone 2a — catalog database
+
+- Why a product's quantity belongs in a product/store record:
+- What a primary key identifies:
+- How category_id connects the two tables:
+- Why a SKU is different from the database ID:
+- My query for active products ordered by price:
+- My query including category names:
+- What I observed when running my queries:
+- One constraint and an invalid value it prevents:
+- The difference between a migration and a seed:
+
 ## Session handoff
 
-- Current lesson: 1.
-- Implementation: connection-check app and prototype documentation complete; lint, type checks, production build, and nine browser checks passed locally.
-- Learner exercise: implemented by the learner and verified; the required message is sent by Express and rendered by React. The full check suite passes.
-- Explain-back discussion: started; the learner identified the schema/response mismatch. Request transport versus response validation was discussed. Written answers above remain for the learner to complete.
-- Next milestone: product catalog and SQL, beginning with the distinction between a product and its quantity at a store.
+- Current lesson: 2a, the catalog database.
+- Lesson 1 exercise: implemented by the learner, verified, and committed as ea684fc.
+- Explain-back discussion: the learner identified the schema/response mismatch and correctly placed stock quantity in a separate product/store record. Written answers above remain for the learner to complete.
+- Current exercise: write the active-product SELECT, then add category names with a JOIN.
+- Next part: connect a parameterized catalog query to Express and React after reviewing the SQL exercise.

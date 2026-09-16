@@ -10,7 +10,7 @@ This is a guided rebuild of an AI-assisted inventory prototype. The owner is a C
 - The original project in /Users/lorenzoworx/Downloads/ubaInventory is reference material. Do not modify it as part of this rebuild.
 - Keep documentation honest about implemented features, uncompleted exercises, and planned work.
 - Review and test focused changes before making an ordinary commit. Preserve actual authorship and commit dates.
-- Run npm run check for application changes. It builds and tests the production app. Use a separate test database when database features are introduced.
+- Run npm run check for application changes. It checks the catalog on TEST_DATABASE_URL and builds/tests the production app. Tests must use a separate database ending in _test; never run them against the development database.
 - Never commit credentials, real store data, .env files, or build outputs.
 
-See docs/roadmap.md for scope and docs/lessons/01-request-round-trip.md for the current lesson.
+See docs/roadmap.md for scope and docs/learning-notes.md for the current lesson. The active SQL lesson is docs/lessons/02-catalog-database.md.

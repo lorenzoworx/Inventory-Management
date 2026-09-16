@@ -2,20 +2,30 @@
 
 A full-stack inventory management project being rebuilt in small, explainable milestones from an earlier AI-assisted prototype. This repository records the new implementation and the learning behind it.
 
-**Current implementation: milestone 1 — browser → server → browser.** React calls a real Express endpoint, validates its JSON response, and displays loading, success, error, and retry states. Inventory features and public deployment are planned; they are not implemented yet.
+**Current implementation: milestone 2a — the catalog database.** The React/Express connection check works, and PostgreSQL now has a product/category migration and fictional seed data. Catalog API routes, catalog screens, stock operations, and public deployment are still planned.
 
 ## Run locally
 
-Use Node.js 24 and npm. No database, accounts, or environment secrets are needed for this milestone.
+Use Node.js 24, npm, and PostgreSQL 18. The PostgreSQL binaries (`initdb`, `pg_ctl`, `psql`, and `createdb`) must be on PATH.
 
 ```sh
 git clone https://github.com/lorenzoworx/Inventory-Management.git
 cd Inventory-Management
 npm ci
+cp .env.example .env
+npm run db:start
+npm run db:migrate
+npm run db:seed
 npm run dev
 ```
 
 Open http://127.0.0.1:5173. Vite serves React on port 5173 and forwards `/api` requests to Express on port 4000. Both bind to the local machine. Stop them with Ctrl+C.
+
+The local database helper creates its own cluster under the ignored `.local/postgres` directory and listens on `127.0.0.1:5433`. It creates `ims` for development and `ims_test` for tests. It uses trust authentication for local learning only; the later server deployment will use separate credentials and configuration. Existing PostgreSQL services are not reconfigured.
+
+`npm run db:shell` opens psql for the development database. `npm run db:stop` stops this project's cluster while preserving its data; `db:start` starts it again. These helpers always target the local cluster, while migration and seed commands use `DATABASE_URL` from the environment or `.env`.
+
+For a database hosted elsewhere, create separate development and test databases, set their URLs in `.env`, and skip `db:start`. The connection-check webpage can still run without PostgreSQL; it does not query the catalog yet.
 
 To test the production arrangement, stop development first, then:
 
@@ -38,10 +48,12 @@ The response is HTTP 200 with JSON containing `status`, `service`, `checkedAt`, 
 
 ```sh
 npx playwright install chromium  # once per machine / browser version
-npm run check                    # lint, typecheck, build, browser tests
+npm run check                    # lint, typecheck, database tests, build, browser tests
 ```
 
-Browser tests run the production app on port 4199, independent of the dev server. They cover the real request path, refresh, pending requests, network errors, HTTP errors, invalid responses, timeout recovery, API 404s, and a phone-sized keyboard walkthrough. `npm test` builds and runs just these tests. GitHub Actions runs the same checks.
+Vitest applies the migration and seed to `TEST_DATABASE_URL`, which must name a separate database ending in `_test`. Constraint tests roll back their changes. They cover category relationships, decimal prices, invalid records, migration/seed repeatability, and deactivation. Run them with `npm run test:db`.
+
+Playwright runs the production app on port 4199, independent of the dev server. Browser tests cover the real request path, refresh, pending requests, network errors, HTTP errors, invalid responses, timeout recovery, API 404s, and a phone-sized keyboard walkthrough. Run them with `npm run test:e2e`. `npm test` runs both suites; GitHub Actions does the same against a PostgreSQL 18 service.
 
 ## Repository map
 
@@ -49,7 +61,9 @@ Browser tests run the production app on port 4199, independent of the dev server
 apps/web/            React UI and Vite development server
 apps/api/            Express HTTP application and server entry point
 packages/contracts/  Shared response schema and TypeScript types
-tests/               Browser/API boundary tests using Playwright
+db/                  Handwritten migrations, fictional seed data, SQL exercise
+scripts/             Local database lifecycle and migration/seed commands
+tests/               Database checks with Vitest; browser checks with Playwright
 docs/                Prototype map, roadmap, decisions, and lessons
 ```
 
@@ -60,9 +74,10 @@ These are npm workspaces: one install and lockfile manage the packages together.
 1. Read the [prototype map](docs/prototype-map.md).
 2. Work through [lesson 1](docs/lessons/01-request-round-trip.md).
 3. Write your own answers in the [learning notes](docs/learning-notes.md).
-4. Review the [roadmap](docs/roadmap.md) before starting the next milestone.
+4. Continue with [lesson 2a: the catalog database](docs/lessons/02-catalog-database.md).
+5. Review the [roadmap](docs/roadmap.md) before starting the next milestone.
 
-The rebuild uses React, TypeScript, Express, and later PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo will eventually run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data.
+The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo will eventually run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data.
 
 ## Development approach
 

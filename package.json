@@ -16,7 +16,14 @@
     "start": "NODE_ENV=production npm run start -w @ims/api",
     "typecheck": "npm run build -w @ims/contracts && tsc -p tsconfig.tools.json && npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
-    "test": "npm run build && playwright test",
+    "db:start": "bash scripts/local-db.sh start",
+    "db:stop": "bash scripts/local-db.sh stop",
+    "db:shell": "bash scripts/local-db.sh shell",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/database.ts migrate",
+    "db:seed": "node --env-file-if-exists=.env --import tsx scripts/database.ts seed",
+    "test:db": "vitest run",
+    "test:e2e": "npm run build && playwright test",
+    "test": "npm run test:db && npm run test:e2e",
     "test:ui": "npm run build && playwright test --ui",
     "check": "npm run lint && npm run typecheck && npm test"
   },
@@ -24,10 +31,15 @@
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.56.1",
     "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
     "concurrently": "^9.2.1",
     "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "node-pg-migrate": "^9.0.0",
+    "pg": "^8.23.0",
+    "tsx": "^4.23.13",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.0"
+    "typescript-eslint": "^8.46.0",
+    "vitest": "^5.0.1"
   }
 }
