@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Category } from "@ims/contracts";
 import { errorMessage, getCategoryOptions, requestJson, type ResponseSchema } from "./catalog-api";
 
@@ -6,6 +6,7 @@ type Resource<T> = { phase: "loading" } | { phase: "ready"; data: T } | { phase:
 
 export function useResource<T>(url: string, schema: ResponseSchema<T>) {
   const [attempt, setAttempt] = useState(0);
+  const reload = useCallback(() => setAttempt((value) => value + 1), []);
   const [state, setState] = useState<{ key: string; result: Resource<T> }>({ key: "", result: { phase: "loading" } });
   const key = `${url}:${attempt}`;
   useEffect(() => {
@@ -16,7 +17,7 @@ export function useResource<T>(url: string, schema: ResponseSchema<T>) {
     );
     return () => controller.abort();
   }, [url, schema, key]);
-  return { state: state.key === key ? state.result : { phase: "loading" } as const, reload: () => setAttempt((value) => value + 1) };
+  return { state: state.key === key ? state.result : { phase: "loading" } as const, reload };
 }
 
 export function useCategories() {

@@ -4,8 +4,10 @@ import { productInputSchema, productListSchema, productSchema, type Product } fr
 import { errorMessage, RequestError, requestJson } from "./catalog-api";
 import { ErrorNotice, formatPrice, Pagination } from "./catalog-components";
 import { useCategories, useResource } from "./use-resource";
+import { useAuth } from "./Auth";
 
 export function ProductsPage() {
+  const canEdit = useAuth().user?.role === "ADMIN";
   const [params, setParams] = useSearchParams();
   const products = useResource(`/api/products?${params}`, productListSchema);
   const categories = useCategories();
@@ -46,7 +48,7 @@ export function ProductsPage() {
   }
 
   return <>
-    <section className="page-heading"><div><p className="eyebrow">CATALOG</p><h1>Products</h1><p>One catalog for every location. Keep your product details in order.</p></div><Link className="button-link" to="/products/new"><span aria-hidden="true">＋</span> Add product</Link></section>
+    <section className="page-heading"><div><p className="eyebrow">CATALOG</p><h1>Products</h1><p>One catalog for every location. Keep your product details in order.</p></div>{canEdit && <Link className="button-link" to="/products/new"><span aria-hidden="true">＋</span> Add product</Link>}</section>
     <section className="catalog-panel" aria-label="Product catalog">
       <form className="filters" onSubmit={filter} key={params.toString()}>
         <label className="search-field">Search products<input name="q" type="search" maxLength={100} defaultValue={params.get("q") ?? ""} placeholder="Name, SKU, or barcode" /></label>
@@ -65,13 +67,13 @@ export function ProductsPage() {
       {products.state.phase === "error" && <ErrorNotice message={products.state.message} retry={products.reload} />}
       {result && <>
         <div className="table-caption"><h2>{params.get("status") === "all" ? "All products" : params.get("status") === "inactive" ? "Inactive products" : "Active products"} <span className="count-badge">{result.total}</span></h2><span>Cost & selling prices in NGN</span></div>
-        {result.items.length === 0 ? <div className="empty-state"><h2>No products found</h2><p>Try a different search or add a product to your catalog.</p><Link to="/products/new">Add your first matching product</Link></div> : <div className="table-scroll" role="region" aria-label="Products" tabIndex={0}><table className="product-table"><thead><tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col" className="number">Cost price</th><th scope="col" className="number">Selling price</th><th scope="col">Status</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>
+        {result.items.length === 0 ? <div className="empty-state"><h2>No products found</h2><p>Try a different search or change your filters.</p>{canEdit && <Link to="/products/new">Add your first matching product</Link>}</div> : <div className="table-scroll" role="region" aria-label="Products" tabIndex={0}><table className="product-table"><thead><tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col" className="number">Cost price</th><th scope="col" className="number">Selling price</th><th scope="col">Status</th>{canEdit && <th scope="col"><span className="sr-only">Actions</span></th>}</tr></thead><tbody>
           {result.items.map((product) => <tr key={product.id}>
-            <th scope="row"><Link to={`/products/${product.id}/edit`} className="product-name">{product.name}</Link><span className="product-detail">{product.sku} <span aria-hidden="true">·</span> {product.unit}</span></th>
+            <th scope="row">{canEdit ? <Link to={`/products/${product.id}/edit`} className="product-name">{product.name}</Link> : <span className="product-name">{product.name}</span>}<span className="product-detail">{product.sku} <span aria-hidden="true">·</span> {product.unit}</span></th>
             <td><span className="category-label">{product.categoryName}</span></td>
             <td className="number">{formatPrice(product.costPrice)}</td><td className="number selling-price">{formatPrice(product.sellPrice)}</td>
             <td><span className={`product-status ${product.isActive ? "active" : "inactive"}`}><span aria-hidden="true">●</span> {product.isActive ? "Active" : "Inactive"}</span></td>
-            <td><div className="row-actions"><Link to={`/products/${product.id}/edit`} aria-label={`Edit ${product.name}`}>Edit</Link><button className="text-button" disabled={busy !== null} onClick={() => { void setStatus(product); }} aria-label={`${product.isActive ? "Deactivate" : "Reactivate"} ${product.name}`}>{busy === product.id ? "Saving…" : product.isActive ? "Deactivate" : "Reactivate"}</button></div></td>
+            {canEdit && <td><div className="row-actions"><Link to={`/products/${product.id}/edit`} aria-label={`Edit ${product.name}`}>Edit</Link><button className="text-button" disabled={busy !== null} onClick={() => { void setStatus(product); }} aria-label={`${product.isActive ? "Deactivate" : "Reactivate"} ${product.name}`}>{busy === product.id ? "Saving…" : product.isActive ? "Deactivate" : "Reactivate"}</button></div></td>}
           </tr>)}
         </tbody></table></div>}
         <Pagination {...result} changePage={(page) => { const next = new URLSearchParams(params); next.set("page", String(page)); setParams(next); }} />

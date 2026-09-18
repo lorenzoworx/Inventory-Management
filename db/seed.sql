@@ -18,3 +18,8 @@ FROM (
 ) AS sample(sku, name, unit, cost_price, sell_price, category_name, is_active)
 JOIN categories ON categories.name = sample.category_name
 ON CONFLICT (sku) DO NOTHING;
+INSERT INTO stores (code, name, kind) VALUES
+  ('LAGOS', 'Lagos Central', 'SHOP'),
+  ('IBADAN', 'Ibadan Market', 'SHOP'),
+  ('DEPOT', 'Main Warehouse', 'WAREHOUSE')
+ON CONFLICT (code) DO NOTHING;

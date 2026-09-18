@@ -11,11 +11,18 @@
   },
   "dependencies": {
     "@ims/contracts": "0.1.0",
+    "bcrypt": "^6.0.0",
+    "connect-pg-simple": "^10.0.0",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "express-session": "^1.19.0",
     "pg": "^8.23.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/connect-pg-simple": "^7.0.3",
     "@types/express": "^5.0.0",
+    "@types/express-session": "^1.19.0",
     "tsx": "^4.20.6"
   }
 }

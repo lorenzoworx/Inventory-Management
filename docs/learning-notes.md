@@ -36,9 +36,9 @@ These answers belong to the learner. Implementation progress and understanding a
 
 ## Session handoff
 
-- Current implementation: milestone 2, catalog database, HTTP API, and React interface.
+- Current implementation: milestone 3, authentication, role permissions, and store-scoped reads.
 - Lesson 1 exercise: implemented by the learner, verified, and committed as ea684fc.
 - Discussion so far: the learner identified the schema/response mismatch and correctly placed stock quantity in a separate product/store record. Written answers above remain for the learner to complete.
 - Workflow changed on 2026-09-18: build continues because of time constraints; all learning questions/tasks are collected in the root `questions.md`. No answer is assumed or filled in for the learner.
-- Implementation explanation and actual bugs: `docs/lessons/02-catalog-api.md`.
-- Next feature: login, server-side sessions, roles, and store access.
+- Implementation explanations and actual bugs: `docs/lessons/02-catalog-api.md` and `docs/lessons/03-authentication.md`.
+- Next feature: product/store balances, stock movements, transactions, and sale/adjustment workflows.

@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { test, expect, type Page } from "@playwright/test";
 import { connectTestDatabase } from "./test-database.js";
+import { signIn } from "./browser-auth.js";
+
+test.beforeEach(async ({ page }) => { await signIn(page); });
 
 const productSkus: string[] = [];
 const categoryNames: string[] = [];
@@ -32,11 +35,11 @@ test("creates a category and product, edits through a deep link, and changes act
   await page.goto("/categories");
   await page.getByLabel("Category name").fill(category);
   await page.getByRole("button", { name: "Create category" }).click();
-  await expect(page.getByRole("status")).toHaveText(`${category} created.`);
+  await expect(page.getByRole("status").filter({ hasText: `${category} created.` })).toHaveText(`${category} created.`);
   await page.getByRole("button", { name: `Edit ${category}`, exact: true }).click();
   await page.getByLabel("Category name").fill(renamedCategory);
   await page.getByRole("button", { name: "Save category" }).click();
-  await expect(page.getByRole("status")).toHaveText(`${renamedCategory} updated.`);
+  await expect(page.getByRole("status").filter({ hasText: `${renamedCategory} updated.` })).toHaveText(`${renamedCategory} updated.`);
 
   await page.getByRole("link", { name: "Products", exact: true }).click();
   await page.getByRole("link", { name: "Add product", exact: true }).click();
@@ -59,7 +62,7 @@ test("creates a category and product, edits through a deep link, and changes act
   await page.getByLabel("Status", { exact: true }).selectOption("inactive");
   await page.getByRole("button", { name: "Apply filters" }).click();
   await page.getByRole("button", { name: "Reactivate Browser test rice", exact: true }).click();
-  await expect(page.getByRole("status")).toHaveText("Browser test rice reactivated.");
+  await expect(page.getByRole("status").filter({ hasText: "Browser test rice reactivated." })).toHaveText("Browser test rice reactivated.");
   await page.getByLabel("Status", { exact: true }).selectOption("all");
   await page.getByRole("button", { name: "Apply filters" }).click();
   await expect(page.getByRole("row").filter({ hasText: sku })).toContainText("Active");
@@ -77,8 +80,8 @@ test("shows client validation and server duplicate errors without losing form va
   await expect(page.getByLabel("SKU", { exact: true })).toHaveAttribute("aria-invalid", "true");
 });
 
-test("searches real seeded products and restores category filters on refresh and Back", async ({ page, request }) => {
-  const response = await request.get("/api/categories?pageSize=100");
+test("searches real seeded products and restores category filters on refresh and Back", async ({ page }) => {
+  const response = await page.request.get("/api/categories?pageSize=100");
   const { items } = await response.json();
   const pantry = items.find((item: { name: string }) => item.name === "Pantry");
   await page.goto(`/products?categoryId=${pantry.id}&q=RICE-001`);

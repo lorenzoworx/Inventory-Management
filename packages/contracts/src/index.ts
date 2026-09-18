@@ -58,3 +58,20 @@ export const productListSchema = z.object({
   page: z.number().int().positive(), pageSize: z.number().int().positive()
 });
 export type ProductList = z.infer<typeof productListSchema>;
+
+export const roleSchema = z.enum(["ADMIN", "MANAGER", "STAFF", "VIEWER"]);
+export type Role = z.infer<typeof roleSchema>;
+export const userSchema = z.object({
+  id: recordIdSchema, email: z.email(), name: z.string(), role: roleSchema,
+  storeId: recordIdSchema.nullable(), storeName: z.string().nullable()
+});
+export type User = z.infer<typeof userSchema>;
+export const loginSchema = z.strictObject({
+  email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
+  password: z.string().min(1).max(72).refine((value) => new TextEncoder().encode(value).length <= 72, "Password must be at most 72 UTF-8 bytes.")
+});
+export const sessionSchema = z.object({ user: userSchema.nullable(), csrfToken: z.string().min(32) });
+export type SessionInfo = z.infer<typeof sessionSchema>;
+export const okSchema = z.object({ ok: z.literal(true) });
+export const storeSchema = z.object({ id: recordIdSchema, code: z.string(), name: z.string(), kind: z.enum(["SHOP", "WAREHOUSE"]) });
+export const storeListSchema = z.object({ items: z.array(storeSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });

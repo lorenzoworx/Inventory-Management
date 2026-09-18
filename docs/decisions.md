@@ -38,4 +38,10 @@ On 2026-09-18 the owner requested continued development because of time constrai
 
 The catalog adds React Router, pg as an API runtime dependency, and Supertest for database-backed HTTP tests. Shared schemas validate request and response shapes. Routes handle HTTP; the repository owns parameterized SQL. There is no business-service abstraction until workflows require one. Listing uses literal substring search, stable ordering, and bounded pagination. Deactivation explicitly sets a boolean instead of toggling it, making repeated requests safe.
 
-Categories and products are shared records. Quantities remain absent until the product/store balance and movement ledger are introduced together. API writes are currently local and unauthenticated; public deployment remains gated on the planned session and viewer permissions implementation.
+Categories and products are shared records. Quantities remain absent until the product/store balance and movement ledger are introduced together. Catalog writes now require ADMIN after the authentication increment below. Public deployment remains a later milestone.
+
+## 010 — Server-side sessions and current database permissions
+
+Use bcrypt (cost 12) for provisioned passwords, express-session for signed opaque cookies, and connect-pg-simple for PostgreSQL persistence. Login rotates the session ID and CSRF token; logout destroys the stored session. The API reloads the active user and role/store assignment on each protected request. Catalog writes require ADMIN; store reads are scoped to the actual record, with global reads for ADMIN and VIEWER.
+
+Writes require a session-bound CSRF header, including login/logout. Cookies are HttpOnly, SameSite=Lax, and Secure unless explicitly disabled for local HTTP. The first login throttle uses an in-memory per-IP limiter for one API process; a shared limiter is needed before deploying multiple replicas. Local credentials are generated into an ignored file and never committed. Account administration and recovery flows are outside this milestone.

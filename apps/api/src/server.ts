@@ -2,6 +2,8 @@ import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createApp } from "./app.js";
 import { Pool } from "pg";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 
 const envFile = fileURLToPath(new URL("../../../.env", import.meta.url));
 if (existsSync(envFile)) process.loadEnvFile(envFile);
@@ -24,7 +26,13 @@ if (webDirectory && !existsSync(`${webDirectory}/index.html`)) {
   throw new Error("Frontend build missing. Run npm run build from the repository root first.");
 }
 
-const app = createApp({ db: pool, webDirectory });
+const SessionStore = connectPgSimple(session);
+const sessionStore = new SessionStore({ pool, tableName: "web_sessions", createTableIfMissing: false });
+const app = createApp({
+  db: pool, webDirectory,
+  auth: { store: sessionStore, secret: process.env.SESSION_SECRET ?? "", secureCookies: process.env.COOKIE_SECURE !== "false" },
+  trustProxy: process.env.TRUST_PROXY === "loopback"
+});
 const server = app.listen(port, host, () => {
   console.log(`Uba Inventory API listening at http://${host}:${port}`);
 });
@@ -36,7 +44,7 @@ server.on("error", (error) => {
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
-    server.close(() => { void pool.end().then(() => process.exit(0)); });
+    server.close(() => { sessionStore.close(); void pool.end().then(() => process.exit(0)); });
     // Don't wait indefinitely for an unfinished request during shutdown.
     setTimeout(() => process.exit(1), 5000).unref();
   });

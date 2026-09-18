@@ -1,4 +1,4 @@
-import { apiErrorSchema, categoryListSchema, type Category } from "@ims/contracts";
+import { apiErrorSchema, categoryListSchema, sessionSchema, type Category } from "@ims/contracts";
 
 export type ResponseSchema<T> = { parse(value: unknown): T };
 export class RequestError extends Error {
@@ -6,15 +6,22 @@ export class RequestError extends Error {
 }
 
 export async function requestJson<T>(url: string, schema: ResponseSchema<T>, options: RequestInit = {}): Promise<T> {
+  const signal = options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000);
+  const headers = new Headers(options.headers);
+  if (options.body) headers.set("Content-Type", "application/json");
+  if (!["GET", "HEAD"].includes(options.method ?? "GET")) {
+    // A fresh token also handles another browser tab signing in or out.
+    const current = await requestJson("/api/auth/session", sessionSchema, { signal });
+    headers.set("x-csrf-token", current.csrfToken);
+  }
   const response = await fetch(url, {
-    ...options, cache: "no-store",
-    signal: options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
-    headers: { ...(options.body ? { "Content-Type": "application/json" } : {}), ...options.headers }
+    ...options, cache: "no-store", signal, headers
   });
   let body: unknown;
   try { body = await response.json(); }
   catch (error) { throw new RequestError("The server returned an unreadable response. Please try again.", {}, { cause: error }); }
   if (!response.ok) {
+    if (response.status === 401 && url !== "/api/auth/login") window.dispatchEvent(new Event("ims:session-expired"));
     const parsed = apiErrorSchema.safeParse(body);
     throw new RequestError(parsed.success ? parsed.data.error.message : `Request failed (HTTP ${response.status}).`, parsed.success ? parsed.data.error.fields : {});
   }

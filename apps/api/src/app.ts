@@ -4,10 +4,13 @@ import { join } from "node:path";
 import { catalogRoutes } from "./catalog-routes.js";
 import type { Database } from "./catalog-repository.js";
 import { errorHandler } from "./errors.js";
+import { authRoutes, requireCsrf, requireUser, sessionMiddleware, type AuthOptions } from "./auth.js";
+import { storeRoutes } from "./store-routes.js";
 
-export function createApp({ db, webDirectory }: { db: Database; webDirectory?: string }) {
+export function createApp({ db, webDirectory, auth, trustProxy = false }: { db: Database; webDirectory?: string; auth: AuthOptions; trustProxy?: boolean }) {
   const app = express();
   app.disable("x-powered-by");
+  if (trustProxy) app.set("trust proxy", "loopback");
   app.use("/api", (_request, response, next) => {
     response.set("Cache-Control", "no-store");
     next();
@@ -25,7 +28,11 @@ export function createApp({ db, webDirectory }: { db: Database; webDirectory?: s
     response.set("Cache-Control", "no-store").json(health);
   });
 
-  app.use("/api", catalogRoutes(db));
+  app.use("/api", sessionMiddleware(auth));
+  app.use("/api/auth", authRoutes(db, auth));
+  const access = express.Router();
+  access.use(["/products", "/categories", "/stores"], requireUser(db), requireCsrf);
+  app.use("/api", access, catalogRoutes(db), storeRoutes(db));
 
   // Keep API errors as JSON, even when Express also serves the frontend.
   app.use("/api", (_request, response) => {
@@ -38,7 +45,7 @@ export function createApp({ db, webDirectory }: { db: Database; webDirectory?: s
   if (webDirectory) {
     app.use(express.static(webDirectory));
     // React Router owns these browser URLs; missing assets must remain 404s.
-    app.get(["/", "/products", "/products/new", "/products/:id/edit", "/categories", "/connection"], (_request, response) => {
+    app.get(["/", "/login", "/products", "/products/new", "/products/:id/edit", "/categories", "/stores", "/connection"], (_request, response) => {
       response.sendFile(join(webDirectory, "index.html"));
     });
   }

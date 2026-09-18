@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { testDatabaseUrl } from "./tests/test-database.js";
+import { testSessionSecret } from "./tests/auth-fixtures.js";
 
 export default defineConfig({
   testDir: "./tests",
@@ -17,7 +18,7 @@ export default defineConfig({
   webServer: {
     command: "npm run start",
     url: "http://127.0.0.1:4199/api/health",
-    env: { PORT: "4199", HOST: "127.0.0.1", DATABASE_URL: testDatabaseUrl() },
+    env: { PORT: "4199", HOST: "127.0.0.1", DATABASE_URL: testDatabaseUrl(), SESSION_SECRET: testSessionSecret, COOKIE_SECURE: "false" },
     reuseExistingServer: false
   }
 });

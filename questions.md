@@ -34,6 +34,21 @@ This is the learning backlog. Since 2026-09-18, implementation continues without
 - [ ] Change a category name and check the product list. Explain why the category name is not copied into every product row.
 - [ ] Review `docs/lessons/02-catalog-api.md`, then describe one actual implementation bug and its fix in your own words.
 
+## 3. Login and permissions
+
+- [ ] Trace login from the anonymous session/CSRF request through bcrypt comparison to the new cookie. See `docs/lessons/03-authentication.md`.
+- [ ] Explain why the database contains a password hash and the browser receives only an opaque session ID.
+- [ ] Sign in as the local viewer, then as the administrator. Explain which screens and actions change.
+- [ ] Explain why hiding an edit button cannot prevent a direct HTTP write; point to the server check that rejects it.
+- [ ] Sign in as the manager and explain why Locations contains only Lagos Central.
+- [ ] Compare authentication, role authorization, and authorization for a specific store record.
+- [ ] Explain why login changes the session ID and logout deletes the stored session.
+- [ ] Explain HttpOnly, SameSite, Secure, and the CSRF header. Why is Secure disabled only for local HTTP?
+- [ ] Describe how changing a user's role, active flag, or store affects an existing session.
+- [ ] Explain the login throttle and why its state resets on API restart.
+- [ ] Review the session-persistence test and explain what a new application instance reads from PostgreSQL.
+- [ ] Explain why test credentials and helpers refuse the development database.
+
 ## Later learning checkpoints
 
 - [ ] Authentication: distinguish identity, role permissions, and access to a particular store record. Explain why hidden buttons cannot enforce permissions.

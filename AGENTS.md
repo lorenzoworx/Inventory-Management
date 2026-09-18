@@ -13,4 +13,4 @@ This is a guided rebuild of an AI-assisted inventory prototype. The owner is a C
 - Run npm run check for application changes. It checks the catalog on TEST_DATABASE_URL and builds/tests the production app. Tests must use a separate database ending in _test; never run them against the development database.
 - Never commit credentials, real store data, .env files, or build outputs.
 
-See docs/roadmap.md for scope and docs/learning-notes.md for the current lesson. The active SQL lesson is docs/lessons/02-catalog-database.md.
+See docs/roadmap.md for scope and docs/learning-notes.md for the current lesson. Questions and tasks live in questions.md; the latest lesson is docs/lessons/03-authentication.md.
