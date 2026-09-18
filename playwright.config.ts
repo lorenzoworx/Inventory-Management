@@ -1,8 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import { testDatabaseUrl } from "./tests/test-database.js";
 
 export default defineConfig({
   testDir: "./tests",
   testMatch: "**/*.spec.ts",
+  globalSetup: "./tests/browser-setup.ts",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -15,7 +17,7 @@ export default defineConfig({
   webServer: {
     command: "npm run start",
     url: "http://127.0.0.1:4199/api/health",
-    env: { PORT: "4199", HOST: "127.0.0.1" },
+    env: { PORT: "4199", HOST: "127.0.0.1", DATABASE_URL: testDatabaseUrl() },
     reuseExistingServer: false
   }
 });

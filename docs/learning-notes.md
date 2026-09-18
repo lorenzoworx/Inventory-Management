@@ -36,8 +36,9 @@ These answers belong to the learner. Implementation progress and understanding a
 
 ## Session handoff
 
-- Current lesson: 2a, the catalog database.
+- Current implementation: milestone 2, catalog database, HTTP API, and React interface.
 - Lesson 1 exercise: implemented by the learner, verified, and committed as ea684fc.
-- Explain-back discussion: the learner identified the schema/response mismatch and correctly placed stock quantity in a separate product/store record. Written answers above remain for the learner to complete.
-- Current exercise: write the active-product SELECT, then add category names with a JOIN.
-- Next part: connect a parameterized catalog query to Express and React after reviewing the SQL exercise.
+- Discussion so far: the learner identified the schema/response mismatch and correctly placed stock quantity in a separate product/store record. Written answers above remain for the learner to complete.
+- Workflow changed on 2026-09-18: build continues because of time constraints; all learning questions/tasks are collected in the root `questions.md`. No answer is assumed or filled in for the learner.
+- Implementation explanation and actual bugs: `docs/lessons/02-catalog-api.md`.
+- Next feature: login, server-side sessions, roles, and store access.

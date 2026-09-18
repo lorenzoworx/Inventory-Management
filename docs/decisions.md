@@ -29,3 +29,13 @@ The repository records a guided AI-assisted rebuild with ordinary commits made a
 Milestone 2a introduces categories and products, a versioned handwritten SQL migration, and repeatable fictional seed data. Integer identity keys make relationships easy to inspect while SKUs remain unique business identifiers. Store balances are a later feature. Money is stored as numeric(12, 2), returned by pg as strings, and will be validated at the HTTP boundary when that boundary is introduced.
 
 The existing local PostgreSQL 18 installation runs an isolated project cluster on loopback port 5433. Development and test databases are separate. The helper is local tooling; it does not configure the future container deployment. Vitest verifies database behavior directly, with rollback after each test. Playwright continues to verify the existing HTTP/browser flow.
+
+## 008 — Continue implementation with a separate learning backlog
+
+On 2026-09-18 the owner requested continued development because of time constraints. All learner questions and tasks are collected in the root questions.md; unanswered exercises no longer gate implementation. Explanations, real bugs, tests, and ordinary commits remain part of the process. A completed feature does not imply a completed learning checkpoint.
+
+## 009 — Complete the catalog boundary before stock workflows
+
+The catalog adds React Router, pg as an API runtime dependency, and Supertest for database-backed HTTP tests. Shared schemas validate request and response shapes. Routes handle HTTP; the repository owns parameterized SQL. There is no business-service abstraction until workflows require one. Listing uses literal substring search, stable ordering, and bounded pagination. Deactivation explicitly sets a boolean instead of toggling it, making repeated requests safe.
+
+Categories and products are shared records. Quantities remain absent until the product/store balance and movement ledger are introduced together. API writes are currently local and unauthenticated; public deployment remains gated on the planned session and viewer permissions implementation.

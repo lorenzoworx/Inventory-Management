@@ -2,9 +2,9 @@
 
 This is a guided rebuild of an AI-assisted inventory prototype. The owner is a CS graduate learning web fundamentals through React, Express, and SQL.
 
-- Implement only the requested milestone. The initial session ends at milestone 1; the remaining roadmap is not a request to build ahead.
-- Explain the relevant concept and the request/data flow before expanding the implementation.
-- Give the owner a small exercise and a chance to explain the result. Leave their learning-note answers for them to write.
+- Continue building the agreed roadmap in working increments. The owner changed the workflow on 2026-09-18 because of time constraints; unanswered exercises do not block implementation.
+- Keep explanations and actual implementation decisions in the lesson notes. Put all learner questions and tasks in the root questions.md for later review.
+- Leave the owner's answers and exercises for them to complete. Do not claim understanding or completion on their behalf.
 - Add dependencies and abstractions when a feature requires them. Avoid placeholder business modules.
 - Use TypeScript, ordinary CSS, parameterized PostgreSQL queries through pg, and handwritten SQL migrations. This repository does not use Next.js or Prisma.
 - The original project in /Users/lorenzoworx/Downloads/ubaInventory is reference material. Do not modify it as part of this rebuild.

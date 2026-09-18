@@ -1,0 +1,57 @@
+# Questions and practice tasks
+
+This is the learning backlog. Since 2026-09-18, implementation continues without waiting for these answers. Check a task only when you have actually completed it. This file records questions for the learner; implementation progress lives in the README and roadmap.
+
+## Already discussed
+
+- You identified the health-response mismatch between the shared schema and `app.ts`.
+- You implemented the health-message exercise (commit `ea684fc`).
+- You explained that quantity belongs in a record linking a product to a store because stores maintain different books. The catalog therefore has no quantity column.
+
+## 1. Browser → server → browser
+
+- [ ] Use the browser Network panel on `/connection`: record the method, URL, HTTP status, and JSON response for `/api/health`.
+- [ ] Explain the path from React's `fetch` through Vite's proxy to Express, then back to React state.
+- [ ] Explain what changes when Express serves the production frontend under one origin.
+- [ ] Explain why a TypeScript type cannot validate JSON received at runtime, and where Zod does that work.
+- [ ] Stop only the API, observe the error and retry behavior, then restart it.
+- [ ] Explain the response-message diff in commit `ea684fc`, including why the schema and server needed to agree.
+- [ ] Describe what `npm run dev`, `npm run build`, and `npm run check` each do.
+
+## 2. Catalog and SQL
+
+- [ ] Complete the two SELECT exercises in `db/exercises/02-catalog.sql`: active products ordered by selling price, then products joined to category names. See `docs/lessons/02-catalog-database.md`.
+- [ ] Explain a primary key, a foreign key, and a unique constraint using the product/category tables.
+- [ ] Explain why a SKU is different from the database ID, and why an optional barcode uses NULL instead of an empty string.
+- [ ] Explain migrations versus seeds. What happens when each is run twice?
+- [ ] Trace creating a product: form → shared schema → HTTP request → Express validation → parameterized SQL → response → UI.
+- [ ] Submit a duplicate SKU. Explain the HTTP 409 response and why a database constraint is needed even if the UI checks input.
+- [ ] Explain why prices cross the API as decimal strings and are stored as `numeric(12, 2)`.
+- [ ] Explain why search input belongs in SQL parameters rather than concatenated SQL text.
+- [ ] Explain why list endpoints have a maximum page size and a stable ordering.
+- [ ] Deactivate and reactivate a practice product. Explain why preserving its ID will matter for stock history.
+- [ ] Navigate directly to an edit URL and refresh. Explain the production server's frontend fallback and why unknown `/api` routes still return JSON 404s.
+- [ ] Change a category name and check the product list. Explain why the category name is not copied into every product row.
+- [ ] Review `docs/lessons/02-catalog-api.md`, then describe one actual implementation bug and its fix in your own words.
+
+## Later learning checkpoints
+
+- [ ] Authentication: distinguish identity, role permissions, and access to a particular store record. Explain why hidden buttons cannot enforce permissions.
+- [ ] Sessions: trace login, cookies, session storage, CSRF protection, and logout.
+- [ ] Stock: sketch the product/store balance record and explain its unique product/store pair.
+- [ ] Stock: explain how two simultaneous sales of 7 units behave when only 10 are available.
+- [ ] Stock: explain why a failed transaction must leave both the balance and movement history unchanged.
+- [ ] Purchasing: trace a partial receipt and explain cancellation, locking, and duplicate-request rules.
+- [ ] Transfers: explain source dispatch, stock in transit, destination receipt, and the permissions required at each stage.
+- [ ] Reports: hand-calculate small fixtures and compare them with SQL totals; explain Africa/Lagos date boundaries.
+- [ ] Release: explain migrations, container restart policies, logs, backups, and the restore test.
+
+## Deployment details to supply when deployment begins
+
+- [ ] Record how to connect to the Mac mini and which container runtime it uses. Keep credentials outside this repository.
+- [ ] Choose the domain/subdomain for the public demo and confirm it is configured in Cloudflare.
+- [ ] Keep operational login credentials private; publish only the read-only viewer account once authorization is implemented and tested.
+
+## Your notes
+
+Write your own explanations, surprises, and follow-up questions here or in `docs/learning-notes.md`. Unchecked items do not mean the implementation is missing.

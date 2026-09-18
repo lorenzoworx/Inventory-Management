@@ -81,11 +81,11 @@ The `Down Migration` section reverses this initial schema by dropping its tables
 
 Why have both `id` and `sku`? The database ID is the stable relationship key. The SKU is the unique business identifier people use, which may need correction later without changing every reference.
 
-Prices use `numeric(12, 2)`: at most twelve decimal digits total, including two after the decimal point. These fictional prices are in NGN. PostgreSQL rounds extra fractional digits to that scale; later API validation will reject prices with excess decimal places before storing them. Negative prices and numeric NaN are rejected. The pg driver returns these decimal values as strings, avoiding accidental floating-point conversion.
+Prices use `numeric(12, 2)`: at most twelve decimal digits total, including two after the decimal point. These fictional prices are in NGN. PostgreSQL rounds extra fractional digits to that scale; the catalog API rejects prices with excess decimal places before storing them. Negative prices and numeric NaN are rejected. The pg driver returns these decimal values as strings, avoiding accidental floating-point conversion.
 
 A nullable barcode permits several products without barcodes, but supplied barcodes must be unique. Names and SKUs must be nonempty and have no leading/trailing spaces. Current SKU uniqueness is case-sensitive.
 
-Database constraints also apply to SQL entered outside the application. The later API's validation will provide friendlier messages before trying a write.
+Database constraints also apply to SQL entered outside the application. The catalog API's validation provides friendlier messages before trying a write.
 
 ## Seed data versus schema
 
@@ -119,7 +119,7 @@ The file includes a starting query; its output appears before the results of que
 
 `npm run test:db` runs real queries against `ims_test`, never `ims`. It verifies references, uniqueness, price checks, seed/migration repeatability, and deactivation. Each constraint test uses a transaction and rolls its changes back. `npm run check` also runs the frontend checks.
 
-The next part will carry a parameterized catalog query through Express to React. For now, the webpage remains the lesson 1 connection check; catalog data is available through SQL.
+The [catalog request walkthrough](02-catalog-api.md) now carries a parameterized query through Express to React. The SQL exercise remains intentionally unfinished and is tracked in the root `questions.md`; it does not block development.
 
 ## References
 

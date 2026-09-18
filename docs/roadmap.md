@@ -1,6 +1,6 @@
 # Rebuild roadmap
 
-The first implementation session ends at milestone 1. Continue in small lessons: explain the problem, build a working piece together, complete an exercise, test it, discuss the diff, and commit. Do not implement later milestones automatically.
+The first session ended at milestone 1. On 2026-09-18 the owner requested continued implementation because of time constraints. Continue in tested, reviewable increments and collect all learner questions and tasks in [questions.md](../questions.md). Learning checkpoints remain available for later study and do not gate the build.
 
 | Milestone | Deliverable | Learning checkpoint |
 | --- | --- | --- |

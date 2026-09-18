@@ -2,9 +2,9 @@
 
 ## What this lesson builds
 
-A page that asks the API whether it is running and displays the answer. There is no inventory database yet. The goal is to understand the path that future product and stock requests will follow.
+A page that asks the API whether it is running and displays the answer. This first lesson originally had no inventory database; the catalog is now a separate feature. The goal is to understand the path that future product and stock requests will follow.
 
-Run `npm run dev` from the repository root and open http://127.0.0.1:5173.
+Run `npm run dev` from the repository root and open http://127.0.0.1:5173/connection.
 
 ## Read the implementation in this order
 
@@ -14,7 +14,7 @@ Paths below are relative to the repository root.
 2. **`apps/api/src/server.ts`:** starts the HTTP listener on port 4000. Separating this from the app definition will let us test routes without starting the normal server later.
 3. **`packages/contracts/src/index.ts`:** defines the response shape. The Zod schema exists at runtime; `HealthResponse` is a TypeScript type derived from that schema.
 4. **`apps/web/src/api.ts`:** sends the request with `fetch`, checks the HTTP status, parses JSON, and validates the received data.
-5. **`apps/web/src/App.tsx`:** stores the connection state and renders the corresponding UI. An effect starts the request. Clicking the button changes `attempt`, so the effect runs again.
+5. **`apps/web/src/ConnectionPage.tsx`:** stores the connection state and renders the corresponding UI. An effect starts the request. Clicking the button changes `attempt`, so the effect runs again.
 6. **`apps/web/vite.config.ts`:** forwards development requests beginning with `/api` to port 4000. This proxy is development tooling; it does not run in the browser.
 
 ## Trace the round trip
@@ -103,7 +103,7 @@ Before writing code, predict which files will change and why. Afterward, inspect
 5. What changes when we run the production build?
 6. Why does a successful health response not prove that inventory data is available?
 
-Finish this exercise and discussion before beginning milestone 2.
+These historical prompts are tracked in the root `questions.md`. The exercise was completed; remaining explanations can be reviewed later without pausing development.
 
 ## References for this lesson
 

@@ -1,6 +1,13 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createApp } from "./app.js";
+import { Pool } from "pg";
+
+const envFile = fileURLToPath(new URL("../../../.env", import.meta.url));
+if (existsSync(envFile)) process.loadEnvFile(envFile);
+if (!process.env.DATABASE_URL) throw new Error("Set DATABASE_URL in the environment or root .env file.");
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 5000, statement_timeout: 10000 });
+pool.on("error", (error) => console.error("Idle database connection failed:", error.message));
 
 const port = Number(process.env.PORT ?? 4000);
 const host = process.env.HOST ?? "127.0.0.1";
@@ -17,7 +24,7 @@ if (webDirectory && !existsSync(`${webDirectory}/index.html`)) {
   throw new Error("Frontend build missing. Run npm run build from the repository root first.");
 }
 
-const app = createApp(webDirectory);
+const app = createApp({ db: pool, webDirectory });
 const server = app.listen(port, host, () => {
   console.log(`Uba Inventory API listening at http://${host}:${port}`);
 });
@@ -29,7 +36,7 @@ server.on("error", (error) => {
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, () => {
-    server.close(() => process.exit(0));
+    server.close(() => { void pool.end().then(() => process.exit(0)); });
     // Don't wait indefinitely for an unfinished request during shutdown.
     setTimeout(() => process.exit(1), 5000).unref();
   });
