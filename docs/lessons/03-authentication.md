@@ -1,6 +1,6 @@
 # Lesson 3: who is asking, and what may they do?
 
-All exercises and questions are in [questions.md](../../questions.md). The implementation works independently of those learning checkpoints.
+All exercises and questions are in the private local `questions.md`. The implementation works independently of those learning checkpoints.
 
 ## Data model
 

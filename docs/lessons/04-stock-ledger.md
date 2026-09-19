@@ -56,4 +56,4 @@ The integration suite uses independent pooled connections for concurrent sales, 
 
 Database owners can still edit tables directly; the application preserves history by exposing only append operations. Database operational permissions, backups, and release checks remain part of the deployment milestone. Purchasing and transfer stock changes will build on this transaction boundary in later increments.
 
-Learning prompts are collected in [questions.md](../../questions.md).
+Learning prompts are collected in the private local `questions.md`.

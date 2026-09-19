@@ -1,6 +1,6 @@
 # Lesson 2b: the catalog through HTTP
 
-Implementation continues while questions and exercises wait in [questions.md](../../questions.md). This walkthrough describes the code; it does not stand in for the learner's own explanation.
+Implementation continues while questions and exercises wait in the private local `questions.md`. This walkthrough describes the code; it does not stand in for the learner's own explanation.
 
 ## Follow a product from the form to PostgreSQL
 
