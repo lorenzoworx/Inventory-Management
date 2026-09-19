@@ -2,7 +2,7 @@
 
 A full-stack inventory management project being rebuilt in small, explainable milestones from an earlier AI-assisted prototype. This repository records the new implementation and the learning behind it.
 
-**Current implementation: milestone 5 — purchasing.** Catalog management, login, store permissions, and stock history are working. Manage suppliers, create and order purchases, receive partial deliveries, and cancel before receipt. Transactions keep stock, order counters, and movement history consistent; repeated receipt IDs are safe. Transfers, reports, and public deployment remain planned.
+**Current implementation: milestone 6 — transfers.** Catalog management, login, store permissions, stock history, suppliers, and purchasing are working. Create transfers, dispatch stock from the source, and receive it at the destination with explicit stock in transit. Transactions, document locks, and request IDs protect both purchasing and transfers. Reports and public deployment remain planned.
 
 ## Run locally
 
@@ -35,7 +35,7 @@ npm run build
 npm start
 ```
 
-Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API from the same origin. React Router handles `/products`, `/products/new`, `/products/:id/edit`, `/categories`, `/stores`, `/stock`, `/movements`, `/suppliers`, `/purchases`, `/purchases/new`, `/purchases/:id`, `/login`, and the original `/connection` lesson. Express serves those routes correctly on refresh. `PORT` and `HOST` can configure this production server; keep the defaults for local use.
+Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API from the same origin. React Router handles `/products`, `/products/new`, `/products/:id/edit`, `/categories`, `/stores`, `/stock`, `/movements`, `/suppliers`, `/purchases`, `/purchases/new`, `/purchases/:id`, `/transfers`, `/transfers/new`, `/transfers/:id`, `/login`, and the original `/connection` lesson. Express serves those routes correctly on refresh. `PORT` and `HOST` can configure this production server; keep the defaults for local use.
 
 ## Explore the request
 
@@ -72,7 +72,7 @@ These are npm workspaces: one install and lockfile manage the packages together.
 
 ## Learn alongside the build
 
-Questions and practice tasks are kept privately in the local, Git-ignored `questions.md`. Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), [sessions and permissions lesson](docs/lessons/03-authentication.md), [stock ledger walkthrough](docs/lessons/04-stock-ledger.md), and [purchasing walkthrough](docs/lessons/05-purchasing.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
+Questions and practice tasks are kept privately in the local, Git-ignored `questions.md`. Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), [sessions and permissions lesson](docs/lessons/03-authentication.md), [stock ledger walkthrough](docs/lessons/04-stock-ledger.md), [purchasing walkthrough](docs/lessons/05-purchasing.md), and [transfer walkthrough](docs/lessons/06-transfers.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
 
 The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo will eventually run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data.
 
@@ -110,7 +110,7 @@ Validation errors use HTTP 400, duplicate identifiers 409, missing records 404, 
 | manager@uba.example | MANAGER_PASSWORD | Read catalog; assigned to Lagos Central |
 | staff@uba.example | STAFF_PASSWORD | Read catalog; assigned to Lagos Central |
 
-The other fictional locations are Ibadan Market and Main Warehouse. Managers can record opening balances, sales, adjustments, and reorder points at their assigned store; staff can record sales there. Managers can create, order, and cancel purchases at their store; managers and staff can receive them. Transfer actions arrive later. There is no public registration, password-reset flow, or account-management UI in this milestone. Account passwords must be at least 12 characters and at most 72 UTF-8 bytes when provisioned. Test credentials are separate and can only be seeded into a database ending in `_test`.
+The other fictional locations are Ibadan Market and Main Warehouse. Managers can record opening balances, sales, adjustments, and reorder points at their assigned store; staff can record sales there. Managers can create, order, and cancel purchases at their store; managers and staff can receive them. Managers can create/cancel transfers from their store; managers and staff can dispatch there and receive transfers addressed there. There is no public registration, password-reset flow, or account-management UI in this milestone. Account passwords must be at least 12 characters and at most 72 UTF-8 bytes when provisioned. Test credentials are separate and can only be seeded into a database ending in `_test`.
 
 | Method | Route | Behavior |
 | --- | --- | --- |
@@ -171,3 +171,22 @@ A receipt body contains a UUID `requestId` and `lines` with `lineId` and positiv
 The lifecycle is DRAFT → ORDERED → PARTIALLY_RECEIVED → RECEIVED, with full deliveries able to skip the partial state. Cancellation is allowed only before any receipt. Creation/ordering require active suppliers and products; previously ordered goods can still be received after deactivation. Costs are snapshots on the order lines and do not update the product's catalog cost. Returns, taxes, freight, and weighted-average costing are outside this milestone.
 
 Tests include real concurrent receipts, cancellation/receipt races, a forced second-line failure with complete rollback, safe lost-response retries, and matching stock totals. Purchase movements appear in History as “Purchase receipt” with the order number. No supplier email is sent by this application.
+
+
+## Transfers between locations
+
+| Method | Route | Behavior |
+| --- | --- | --- |
+| GET | /api/transfers | Accessible incoming/outgoing transfers; q/storeId/status/page/pageSize |
+| GET | /api/transfers/destinations | Paginated location directory for choosing a destination; no stock data |
+| GET | /api/transfers/:id | Read header and lines when either end is accessible |
+| POST | /api/transfers | Create a pending transfer (ADMIN or source MANAGER) |
+| POST | /api/transfers/:id/cancel | Cancel a pending transfer (ADMIN or source MANAGER) |
+| POST | /api/transfers/:id/dispatch | Subtract all source quantities (ADMIN or source MANAGER/STAFF) |
+| POST | /api/transfers/:id/receive | Add all destination quantities (ADMIN or destination MANAGER/STAFF) |
+
+Create with `sourceId`, `destinationId`, optional `notes`, and 1–50 `lines` containing `productId` and positive whole `quantity`. Source and destination must differ. Duplicate products and quantities above 1,000,000 per line are rejected. PostgreSQL assigns a `TR-…` number. Active products are required for creation; existing transfers can finish after product deactivation.
+
+Dispatch and receipt bodies each contain a separate UUID `requestId`. New actions return 201, identical same-user retries return 200, and invalid transitions or reused IDs return 409. Dispatch rejects insufficient source stock and rolls back every line. Receipt likewise commits all destination movements together. Transfer actions appear in stock history with the transfer number.
+
+The lifecycle is PENDING → IN_TRANSIT → RECEIVED, or PENDING → CANCELLED. Pending transfers do not reserve stock. During transit, quantities have left the source but are not yet included at the destination. Transfer lines are fixed, and dispatch/receipt always cover all lines. Partial transfer receipts, losses in transit, and returns require future workflows.

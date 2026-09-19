@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { productListSchema, purchaseInputSchema, purchaseListSchema, purchaseReceiptResultSchema, purchaseReceiptSchema, purchaseSchema, purchaseStatusSchema, storeListSchema, supplierListSchema, type Product, type PurchaseOrder } from "@ims/contracts";
+import { purchaseInputSchema, purchaseListSchema, purchaseReceiptResultSchema, purchaseReceiptSchema, purchaseSchema, purchaseStatusSchema, storeListSchema, supplierListSchema, type Product, type PurchaseOrder } from "@ims/contracts";
 import { useAuth } from "./Auth";
 import { errorMessage, requestJson } from "./catalog-api";
 import { ErrorNotice, formatPrice, Pagination } from "./catalog-components";
 import { useResource } from "./use-resource";
+import { ProductPicker } from "./ProductPicker";
 
 const statusLabels = { DRAFT: "Draft", ORDERED: "Ordered", PARTIALLY_RECEIVED: "Partially received", RECEIVED: "Received", CANCELLED: "Cancelled" };
 const date = new Intl.DateTimeFormat("en-NG", { timeZone: "Africa/Lagos", dateStyle: "medium" });
@@ -81,15 +82,6 @@ export function NewPurchasePage() {
   </>;
 }
 
-function ProductPicker({ selected, add }: { selected: number[]; add: (product: Product) => void }) {
-  const [q, setQ] = useState(""); const [page, setPage] = useState(1);
-  const products = useResource(`/api/products?pageSize=5&page=${page}&q=${encodeURIComponent(q)}`, productListSchema);
-  return <section className="product-picker" aria-label="Add order products"><label>Find products<input type="search" placeholder="Product name or SKU" maxLength={100} value={q} onChange={(event) => { setQ(event.target.value); setPage(1); }} /></label>
-    {products.state.phase === "loading" && <p role="status">Finding products…</p>}
-    {products.state.phase === "error" && <ErrorNotice message={products.state.message} retry={products.reload} />}
-    {products.state.phase === "ready" && <><ul className="category-list">{products.state.data.items.map((product) => <li key={product.id}><span>{product.name}<span className="product-detail">{product.sku} · {formatPrice(product.costPrice)}</span></span><button type="button" className="secondary" disabled={selected.includes(product.id) || selected.length >= 50} aria-label={`Add ${product.name}`} onClick={() => add(product)}>{selected.includes(product.id) ? "Added" : "Add"}</button></li>)}</ul><Pagination {...products.state.data} changePage={setPage} /></>}
-  </section>;
-}
 
 export function PurchaseDetailPage() {
   const { id } = useParams();

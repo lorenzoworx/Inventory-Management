@@ -22,7 +22,7 @@ async function createDraft(page: Page) {
     await page.getByLabel(`Quantity · ${product.name}`, { exact: true }).fill("10");
   }
   await page.getByLabel("Find products", { exact: true }).fill("");
-  const picker = page.getByRole("region", { name: "Add order products", exact: true });
+  const picker = page.getByRole("region", { name: "Add products", exact: true });
   await picker.getByRole("button", { name: "Next", exact: true }).click();
   await expect(picker.getByText(/Page 2 of/)).toBeVisible();
   await expect(page).toHaveURL(/\/purchases\/new$/);

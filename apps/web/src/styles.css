@@ -279,3 +279,14 @@ textarea:focus-visible { outline: 3px solid #007b64; outline-offset: 3px; }
   .product-picker .category-list li { padding: 12px 0; }
   .purchase-actions .form-actions { flex-wrap: wrap; }
 }
+
+/* Dispatch and receipt at separate locations */
+.transfer-draft-line { grid-template-columns: minmax(0, 1.5fr) minmax(140px, 1fr) auto; }
+.transfer-table { min-width: 310px; }
+.transfer-progress { padding: 12px 24px 24px; color: #526b58; font-size: 14px; }
+.transfer-progress p { margin: 12px 0 0; }
+.transfer-progress .movement-note { max-width: none; white-space: pre-wrap; }
+@media (max-width: 720px) {
+  .transfer-draft-line { grid-template-columns: 1fr auto; }
+  .transfer-table th, .transfer-table td { padding: 15px; }
+}

@@ -59,3 +59,9 @@ Purchase orders preserve the prototype's draft, ordered, partially received, rec
 Receiving and cancellation lock the actual order record before checking state. Receipts claim a user-bound UUID and process products in a stable order on one connection, using the same stock-writing function as direct stock entries. All lines, balances, movements, status changes, and the request result commit together. Linked movement rows preserve the order-line reference. Replays return the previous receipt result; the browser then reloads the current order.
 
 Draft editing and supplier returns are deferred: cancel and replace an incorrect draft; correct physical stock with an explained adjustment after receipt. No new dependency is introduced for purchasing. Tests use real PostgreSQL concurrency and a deliberate later-line failure to verify complete rollback.
+
+## 013 — Represent in-transit stock through an explicit transfer lifecycle
+
+Transfers preserve PENDING → IN_TRANSIT → RECEIVED and pending-only cancellation. Pending transfers reserve no stock. Dispatch subtracts at the source; receipt later adds at the destination. The in-transit quantity is derived from the lines of IN_TRANSIT transfers, outside on-hand balances. Each action locks the header, checks the relevant store, claims its own UUID, and posts all lines on one connection through the shared stock writer.
+
+Managers create/cancel from their source. Managers and staff dispatch at the source and receive at the destination. Both sides can read the transfer. A minimal location directory enables destination selection without widening stock or purchasing access. A movement index allows one dispatch and one receipt per transfer line. Existing transfers can finish after product deactivation. Partial arrivals, losses in transit, and returns remain future workflows. Purchasing and transfers now share their product picker; no new runtime dependency is added.

@@ -36,9 +36,9 @@ These answers belong to the learner. Implementation progress and understanding a
 
 ## Session handoff
 
-- Current implementation: milestone 5, supplier management and purchase orders with atomic partial receipts, safe retries, and cancellation rules.
+- Current implementation: milestone 6, transfers with separate source dispatch and destination receipt, stock in transit, safe retries, and store permissions.
 - Lesson 1 exercise: implemented by the learner, verified, and committed as ea684fc.
 - Discussion so far: the learner identified the schema/response mismatch and correctly placed stock quantity in a separate product/store record. Written answers above remain for the learner to complete.
 - Workflow changed on 2026-09-18: build continues because of time constraints; all learning questions/tasks are collected in the root `questions.md`. No answer is assumed or filled in for the learner.
-- Implementation explanations and actual bugs: `docs/lessons/02-catalog-api.md`, `docs/lessons/03-authentication.md`, `docs/lessons/04-stock-ledger.md`, and `docs/lessons/05-purchasing.md`.
-- Next feature: transfers between locations, stock in transit, dispatch and receipt permissions.
+- Implementation explanations and actual bugs: `docs/lessons/02-catalog-api.md`, `docs/lessons/03-authentication.md`, `docs/lessons/04-stock-ledger.md`, `docs/lessons/05-purchasing.md`, and `docs/lessons/06-transfers.md`.
+- Next feature: stock valuation, low-stock reporting, 14-day movement totals, and usability refinements.

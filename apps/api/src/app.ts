@@ -7,6 +7,7 @@ import { errorHandler } from "./errors.js";
 import { authRoutes, requireCsrf, requireUser, sessionMiddleware, type AuthOptions } from "./auth.js";
 import { storeRoutes } from "./store-routes.js";
 import { stockRoutes } from "./stock-routes.js";
+import { transferRoutes } from "./transfer-routes.js";
 import { purchaseRoutes } from "./purchase-routes.js";
 
 export function createApp({ db, transaction, webDirectory, auth, trustProxy = false }: { db: Database; transaction: TransactionRunner; webDirectory?: string; auth: AuthOptions; trustProxy?: boolean }) {
@@ -33,8 +34,8 @@ export function createApp({ db, transaction, webDirectory, auth, trustProxy = fa
   app.use("/api", sessionMiddleware(auth));
   app.use("/api/auth", authRoutes(db, auth));
   const access = express.Router();
-  access.use(["/products", "/categories", "/stores", "/stock", "/movements", "/suppliers", "/purchase-orders"], requireUser(db), requireCsrf);
-  app.use("/api", access, catalogRoutes(db), storeRoutes(db), stockRoutes(db, transaction), purchaseRoutes(db, transaction));
+  access.use(["/products", "/categories", "/stores", "/stock", "/movements", "/suppliers", "/purchase-orders", "/transfers"], requireUser(db), requireCsrf);
+  app.use("/api", access, catalogRoutes(db), storeRoutes(db), stockRoutes(db, transaction), purchaseRoutes(db, transaction), transferRoutes(db, transaction));
 
   // Keep API errors as JSON, even when Express also serves the frontend.
   app.use("/api", (_request, response) => {
@@ -47,7 +48,7 @@ export function createApp({ db, transaction, webDirectory, auth, trustProxy = fa
   if (webDirectory) {
     app.use(express.static(webDirectory));
     // React Router owns these browser URLs; missing assets must remain 404s.
-    app.get(["/", "/login", "/products", "/products/new", "/products/:id/edit", "/categories", "/stores", "/stock", "/movements", "/suppliers", "/purchases", "/purchases/new", "/purchases/:id", "/connection"], (_request, response) => {
+    app.get(["/", "/login", "/products", "/products/new", "/products/:id/edit", "/categories", "/stores", "/stock", "/movements", "/suppliers", "/purchases", "/purchases/new", "/purchases/:id", "/transfers", "/transfers/new", "/transfers/:id", "/connection"], (_request, response) => {
       response.sendFile(join(webDirectory, "index.html"));
     });
   }

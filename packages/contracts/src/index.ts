@@ -76,7 +76,7 @@ export const okSchema = z.object({ ok: z.literal(true) });
 export const storeSchema = z.object({ id: recordIdSchema, code: z.string(), name: z.string(), kind: z.enum(["SHOP", "WAREHOUSE"]) });
 export const storeListSchema = z.object({ items: z.array(storeSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
 
-export const movementKindSchema = z.enum(["OPENING", "SALE", "ADJUSTMENT", "PURCHASE"]);
+export const movementKindSchema = z.enum(["OPENING", "SALE", "ADJUSTMENT", "PURCHASE", "TRANSFER_OUT", "TRANSFER_IN"]);
 const stockIdentifiers = { requestId: z.uuid(), productId: recordIdSchema, storeId: recordIdSchema };
 const units = z.number().int().positive().max(1000000);
 export const stockChangeSchema = z.discriminatedUnion("kind", [
@@ -134,3 +134,25 @@ export type PurchaseOrder = z.infer<typeof purchaseSchema>;
 export const purchaseListSchema = z.object({ items: z.array(purchaseSummarySchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
 export const purchaseReceiptResultSchema = z.object({ orderId: recordIdSchema, status: purchaseStatusSchema, movements: z.array(stockChangeResultSchema), replayed: z.boolean() });
 export type PurchaseReceiptResult = z.infer<typeof purchaseReceiptResultSchema>;
+
+export const transferStatusSchema = z.enum(["PENDING", "IN_TRANSIT", "RECEIVED", "CANCELLED"]);
+export type TransferStatus = z.infer<typeof transferStatusSchema>;
+const transferLineInputSchema = z.strictObject({ productId: recordIdSchema, quantity: units });
+export const transferInputSchema = z.strictObject({
+  sourceId: recordIdSchema, destinationId: recordIdSchema, notes: z.string().trim().max(500).default(""),
+  lines: z.array(transferLineInputSchema).min(1).max(50).refine((lines) => new Set(lines.map((line) => line.productId)).size === lines.length, "Each product can appear only once.")
+}).refine((input) => input.sourceId !== input.destinationId, { message: "Source and destination must be different locations.", path: ["destinationId"] });
+export type TransferInput = z.infer<typeof transferInputSchema>;
+export const transferActionSchema = z.strictObject({ requestId: z.uuid() });
+export const transferQuerySchema = paginationSchema.extend({ storeId: routeIdSchema.optional(), status: transferStatusSchema.optional(), q: z.string().trim().max(100).default("") });
+export type TransferQuery = z.infer<typeof transferQuerySchema>;
+export const transferSummarySchema = z.object({
+  id: recordIdSchema, number: z.string(), sourceId: recordIdSchema, sourceName: z.string(), destinationId: recordIdSchema, destinationName: z.string(),
+  status: transferStatusSchema, notes: z.string(), createdAt: z.iso.datetime(), dispatchedAt: z.iso.datetime().nullable(), receivedAt: z.iso.datetime().nullable(),
+  totalUnits: z.number().int().positive()
+});
+export const transferSchema = transferSummarySchema.extend({ lines: z.array(transferLineInputSchema.extend({ id: recordIdSchema, sku: z.string(), name: z.string() })) });
+export type Transfer = z.infer<typeof transferSchema>;
+export const transferListSchema = z.object({ items: z.array(transferSummarySchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
+export const transferActionResultSchema = z.object({ transferId: recordIdSchema, status: transferStatusSchema, movements: z.array(stockChangeResultSchema), replayed: z.boolean() });
+export type TransferActionResult = z.infer<typeof transferActionResultSchema>;

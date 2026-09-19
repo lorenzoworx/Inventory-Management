@@ -26,8 +26,8 @@ export function stockRepository(db: Database) {
       return changed.rows[0]?.quantity;
     },
     async movement(input: MovementInput, balance: number, userId: number) {
-      const row = await db.query<{ id: number }>(`INSERT INTO stock_movements (product_id, store_id, kind, quantity, balance_after, note, actor_id, request_id, purchase_order_line_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`, [input.productId, input.storeId, input.kind, input.quantity, balance, input.note, userId, input.requestId, input.purchaseOrderLineId ?? null]);
+      const row = await db.query<{ id: number }>(`INSERT INTO stock_movements (product_id, store_id, kind, quantity, balance_after, note, actor_id, request_id, purchase_order_line_id, transfer_line_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`, [input.productId, input.storeId, input.kind, input.quantity, balance, input.note, userId, input.requestId, input.purchaseOrderLineId ?? null, input.transferLineId ?? null]);
       return row.rows[0]!.id;
     },
     async finish(requestId: string, result: unknown) { await db.query("UPDATE stock_requests SET result = $2 WHERE id = $1", [requestId, result]); },

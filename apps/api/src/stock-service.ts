@@ -11,13 +11,13 @@ export async function requireStockAccess(db: Database, user: User, storeId: numb
   }
 }
 
-export type MovementInput = { productId: number; storeId: number; requestId: string; kind: "OPENING" | "SALE" | "ADJUSTMENT" | "PURCHASE"; quantity: number; note: string; purchaseOrderLineId?: number };
+export type MovementInput = { productId: number; storeId: number; requestId: string; kind: "OPENING" | "SALE" | "ADJUSTMENT" | "PURCHASE" | "TRANSFER_OUT" | "TRANSFER_IN"; quantity: number; note: string; purchaseOrderLineId?: number; transferLineId?: number };
 
 // Call only within a transaction, after authorization and claiming the request ID.
 // Purchases call this repeatedly on the same connection; no nested transaction commits a single line.
 export async function applyStockMovement(db: Database, userId: number, input: MovementInput): Promise<StockChangeResult> {
   if (!Number.isInteger(input.quantity) || input.quantity === 0 || Math.abs(input.quantity) > 1000000
-    || (input.kind === "SALE" && input.quantity > 0) || (["OPENING", "PURCHASE"].includes(input.kind) && input.quantity < 0)) {
+    || (["SALE", "TRANSFER_OUT"].includes(input.kind) && input.quantity > 0) || (["OPENING", "PURCHASE", "TRANSFER_IN"].includes(input.kind) && input.quantity < 0)) {
     throw new HttpError(400, "INVALID_QUANTITY", "The stock change has an invalid quantity or sign.");
   }
   const repository = stockRepository(db);
