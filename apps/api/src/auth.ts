@@ -4,7 +4,7 @@ import session from "express-session";
 import { Router, type Request, type RequestHandler } from "express";
 import { rateLimit } from "express-rate-limit";
 import { loginSchema, userSchema, type User } from "@ims/contracts";
-import type { Database } from "./catalog-repository.js";
+import type { Database } from "./database.js";
 import { HttpError, parseInput } from "./errors.js";
 
 declare module "express-session" {

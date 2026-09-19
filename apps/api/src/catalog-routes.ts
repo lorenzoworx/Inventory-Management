@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { categoryInputSchema, paginationSchema, productInputSchema, productQuerySchema, productStatusSchema, routeIdSchema } from "@ims/contracts";
-import { catalogRepository, type Database } from "./catalog-repository.js";
+import { catalogRepository } from "./catalog-repository.js";
+import type { Database } from "./database.js";
 import { HttpError, parseInput } from "./errors.js";
 import { requireAdmin } from "./auth.js";
 

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { paginationSchema, routeIdSchema } from "@ims/contracts";
 import { canReadStore } from "./auth.js";
-import type { Database } from "./catalog-repository.js";
+import type { Database } from "./database.js";
 import { HttpError, parseInput } from "./errors.js";
 
 export function storeRoutes(db: Database) {

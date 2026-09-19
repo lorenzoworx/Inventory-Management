@@ -1,7 +1,6 @@
-import type { Pool } from "pg";
+import type { Database } from "./database.js";
 import type { Category, Product, ProductInput, ProductQuery } from "@ims/contracts";
 
-export type Database = Pick<Pool, "query">;
 type ProductRow = Omit<Product, "createdAt"> & { createdAt: Date };
 const columns = `p.id, p.sku, p.barcode, p.name, p.unit,
   p.cost_price AS "costPrice", p.sell_price AS "sellPrice",

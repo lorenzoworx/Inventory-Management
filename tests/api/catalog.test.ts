@@ -6,7 +6,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { productListSchema, productSchema, type ProductInput } from "@ims/contracts";
 import { createApp } from "../../apps/api/src/app.js";
 import { migrateDatabase, seedDatabase } from "../../db/catalog.js";
-import { connectTestDatabase, testDatabaseUrl } from "../test-database.js";
+import { connectTestDatabase, testDatabaseUrl, testTransaction } from "../test-database.js";
 import { seedTestAccounts, testEmail, testPassword, testSessionSecret } from "../auth-fixtures.js";
 
 let client: Client;
@@ -24,7 +24,7 @@ beforeAll(async () => {
   await seedDatabase(testDatabaseUrl());
   await seedTestAccounts(client);
   // Catalog tests roll back one SQL connection; session persistence has its own integration suite.
-  app = createApp({ db: client, auth: { store: new session.MemoryStore(), secret: testSessionSecret, secureCookies: false } });
+  app = createApp({ db: client, transaction: testTransaction(client), auth: { store: new session.MemoryStore(), secret: testSessionSecret, secureCookies: false } });
 });
 beforeEach(async () => {
   await client.query("BEGIN");

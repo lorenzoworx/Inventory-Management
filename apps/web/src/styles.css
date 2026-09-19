@@ -223,3 +223,30 @@ legend { padding: 0; font-weight: 600; font-size: 18px; }
   .login-panel { padding: 24px; }
   .login-panel h1 { font-size: 31px; }
 }
+
+/* Stock balances and the immutable movement view */
+.stock-filters { margin-bottom: 24px; }
+.stock-filters label:first-child { flex-basis: 230px; }
+.stock-quantity { font-size: 18px; font-weight: 600; }
+.stock-state { color: #326443; font-size: 12px; }
+.stock-state.low { color: #8b5421; }
+.stock-dialog { border: 1px solid #d4dfcd; border-radius: 12px; padding: 30px; color: #243e30; width: min(480px, calc(100% - 32px)); max-height: calc(100vh - 40px); overflow-y: auto; }
+.stock-dialog::backdrop { background: rgb(22 41 31 / 40%); }
+.stock-dialog > p:not(.eyebrow) { font-size: 14px; color: #647960; margin-bottom: 25px; }
+.stock-dialog label { margin-top: 18px; }
+.stock-dialog .error-notice { margin: 16px 0; }
+textarea { font: inherit; font-size: 14px; border: 1px solid #cdd8cc; color: #243e30; border-radius: 5px; padding: 10px 12px; resize: vertical; }
+textarea:focus-visible { outline: 3px solid #007b64; outline-offset: 3px; }
+.form-hint { font-size: 12px; color: #6a7b69; }
+.movement-time { font-size: 12px; white-space: nowrap; }
+.movement-note { max-width: 280px; overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .catalog-header { flex-wrap: wrap; padding-top: 20px; }
+  .catalog-header nav { order: 3; width: 100%; min-height: 58px; }
+}
+@media (max-width: 720px) {
+  .catalog-header nav { flex-wrap: wrap; gap: 0 18px; }
+  .catalog-header nav a { min-height: 44px; font-size: 13px; }
+  .stock-filters label:first-child { flex-basis: 100%; }
+  .stock-dialog { padding: 24px; }
+}

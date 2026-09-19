@@ -6,7 +6,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, it } from "vitest";
 import { type Role } from "@ims/contracts";
 import { createApp } from "../../apps/api/src/app.js";
 import { migrateDatabase, seedDatabase } from "../../db/catalog.js";
-import { connectTestDatabase, testDatabaseUrl } from "../test-database.js";
+import { connectTestDatabase, testDatabaseUrl, testTransaction } from "../test-database.js";
 import { seedTestAccounts, testEmail, testPassword, testSessionSecret } from "../auth-fixtures.js";
 
 const PgStore = connectPgSimple(session);
@@ -31,7 +31,7 @@ function rememberCookie(response: request.Response) {
 function makeApp(secureCookies = false, loginLimit = 10, trustProxy = false) {
   const store = new PgStore({ pool, tableName: "web_sessions", createTableIfMissing: false, pruneSessionInterval: false });
   stores.push(store);
-  return createApp({ db: client, auth: { store, secret: testSessionSecret, secureCookies, loginLimit }, trustProxy });
+  return createApp({ db: client, transaction: testTransaction(client), auth: { store, secret: testSessionSecret, secureCookies, loginLimit }, trustProxy });
 }
 async function login(role: Role, target = app) {
   const agent = request.agent(target);

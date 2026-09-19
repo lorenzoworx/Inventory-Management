@@ -75,3 +75,23 @@ export type SessionInfo = z.infer<typeof sessionSchema>;
 export const okSchema = z.object({ ok: z.literal(true) });
 export const storeSchema = z.object({ id: recordIdSchema, code: z.string(), name: z.string(), kind: z.enum(["SHOP", "WAREHOUSE"]) });
 export const storeListSchema = z.object({ items: z.array(storeSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
+
+export const movementKindSchema = z.enum(["OPENING", "SALE", "ADJUSTMENT"]);
+const stockIdentifiers = { requestId: z.uuid(), productId: recordIdSchema, storeId: recordIdSchema };
+const units = z.number().int().positive().max(1000000);
+export const stockChangeSchema = z.discriminatedUnion("kind", [
+  z.strictObject({ ...stockIdentifiers, kind: z.literal("OPENING"), quantity: units, note: z.string().trim().max(500).default("") }),
+  z.strictObject({ ...stockIdentifiers, kind: z.literal("SALE"), quantity: units, note: z.string().trim().max(500).default("") }),
+  z.strictObject({ ...stockIdentifiers, kind: z.literal("ADJUSTMENT"), quantity: z.number().int().min(-1000000).max(1000000).refine((value) => value !== 0, "Quantity cannot be zero."), note: z.string().trim().min(3, "Give a reason for the adjustment.").max(500) })
+]);
+export type StockChange = z.infer<typeof stockChangeSchema>;
+export const stockChangeResultSchema = z.object({ movementId: recordIdSchema, productId: recordIdSchema, storeId: recordIdSchema, quantity: z.number().int(), balance: z.number().int().nonnegative(), replayed: z.boolean() });
+export type StockChangeResult = z.infer<typeof stockChangeResultSchema>;
+export const reorderInputSchema = z.strictObject({ productId: recordIdSchema, storeId: recordIdSchema, reorderPoint: z.number().int().min(0).max(1000000) });
+export const stockQuerySchema = paginationSchema.extend({ storeId: routeIdSchema, q: z.string().trim().max(100).default("") });
+export const movementQuerySchema = stockQuerySchema.extend({ productId: routeIdSchema.optional(), kind: movementKindSchema.optional() });
+export const stockItemSchema = z.object({ productId: recordIdSchema, sku: z.string(), name: z.string(), unit: z.string(), isActive: z.boolean(), quantity: z.number().int().nonnegative(), reorderPoint: z.number().int().nonnegative(), hasMovements: z.boolean() });
+export type StockItem = z.infer<typeof stockItemSchema>;
+export const stockListSchema = z.object({ items: z.array(stockItemSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
+export const movementSchema = z.object({ id: recordIdSchema, productId: recordIdSchema, sku: z.string(), name: z.string(), kind: movementKindSchema, quantity: z.number().int(), balanceAfter: z.number().int().nonnegative(), note: z.string(), actorName: z.string(), createdAt: z.iso.datetime() });
+export const movementListSchema = z.object({ items: z.array(movementSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });

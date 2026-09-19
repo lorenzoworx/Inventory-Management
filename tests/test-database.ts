@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { Client } from "pg";
+import type { TransactionRunner } from "../apps/api/src/database.js";
 
 if (existsSync(".env")) process.loadEnvFile(".env");
 
@@ -23,4 +24,20 @@ export async function connectTestDatabase() {
     throw new Error("Refusing to modify a database without the _test suffix.");
   }
   return client;
+}
+
+// Tests that already own a BEGIN/ROLLBACK isolate an individual HTTP write with a savepoint.
+export function testTransaction(client: Client): TransactionRunner {
+  return async (work) => {
+    await client.query("SAVEPOINT http_request");
+    try {
+      const result = await work(client);
+      await client.query("RELEASE SAVEPOINT http_request");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK TO SAVEPOINT http_request");
+      await client.query("RELEASE SAVEPOINT http_request");
+      throw error;
+    }
+  };
 }

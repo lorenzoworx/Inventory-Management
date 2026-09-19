@@ -2,7 +2,7 @@
 
 A full-stack inventory management project being rebuilt in small, explainable milestones from an earlier AI-assisted prototype. This repository records the new implementation and the learning behind it.
 
-**Current implementation: milestone 3 — login and permissions.** The product/category catalog supports creation, editing, search, filters, pagination, and activation changes. Login uses bcrypt and PostgreSQL-backed sessions, with CSRF protection, login throttling, and logout. Catalog writes require ADMIN; managers and staff see their assigned location, while administrators and viewers can browse all three fictional locations. Stock operations, purchasing, transfers, reports, and public deployment are still planned.
+**Current implementation: milestone 4 — stock and its history.** The catalog, login, and role permissions are complete. Record opening stock, sales, adjustments, and reorder points per location; browse searchable movement history. Transactions prevent negative balances, preserve matching history, and make repeated request IDs safe. Purchasing, transfers, reports, and public deployment are still planned.
 
 ## Run locally
 
@@ -35,7 +35,7 @@ npm run build
 npm start
 ```
 
-Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API from the same origin. React Router handles `/products`, `/products/new`, `/products/:id/edit`, `/categories`, `/stores`, `/login`, and the original `/connection` lesson. Express serves those routes correctly on refresh. `PORT` and `HOST` can configure this production server; keep the defaults for local use.
+Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API from the same origin. React Router handles `/products`, `/products/new`, `/products/:id/edit`, `/categories`, `/stores`, `/stock`, `/movements`, `/login`, and the original `/connection` lesson. Express serves those routes correctly on refresh. `PORT` and `HOST` can configure this production server; keep the defaults for local use.
 
 ## Explore the request
 
@@ -72,7 +72,7 @@ These are npm workspaces: one install and lockfile manage the packages together.
 
 ## Learn alongside the build
 
-All questions and practice tasks are collected in [questions.md](questions.md). Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), and [sessions and permissions lesson](docs/lessons/03-authentication.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
+All questions and practice tasks are collected in [questions.md](questions.md). Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), and [sessions and permissions lesson](docs/lessons/03-authentication.md), and [stock ledger walkthrough](docs/lessons/04-stock-ledger.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
 
 The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo will eventually run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data.
 
@@ -110,7 +110,7 @@ Validation errors use HTTP 400, duplicate identifiers 409, missing records 404, 
 | manager@uba.example | MANAGER_PASSWORD | Read catalog; assigned to Lagos Central |
 | staff@uba.example | STAFF_PASSWORD | Read catalog; assigned to Lagos Central |
 
-The other fictional locations are Ibadan Market and Main Warehouse. Operational manager/staff actions arrive with stock, purchasing, and transfers. There is no public registration, password-reset flow, or account-management UI in this milestone. Account passwords must be at least 12 characters and at most 72 UTF-8 bytes when provisioned. Test credentials are separate and can only be seeded into a database ending in `_test`.
+The other fictional locations are Ibadan Market and Main Warehouse. Managers can record opening balances, sales, adjustments, and reorder points at their assigned store; staff can record sales there. Purchasing and transfer actions arrive later. There is no public registration, password-reset flow, or account-management UI in this milestone. Account passwords must be at least 12 characters and at most 72 UTF-8 bytes when provisioned. Test credentials are separate and can only be seeded into a database ending in `_test`.
 
 | Method | Route | Behavior |
 | --- | --- | --- |
@@ -123,3 +123,24 @@ The other fictional locations are Ibadan Market and Main Warehouse. Operational 
 Writes, including login/logout, require the `x-csrf-token` header. The frontend fetches the current token immediately before a write; cookies travel automatically under the same origin. The session cookie is HttpOnly, SameSite=Lax, and expires after eight hours of inactivity. Identity lives in PostgreSQL, and each protected request reloads the user's current active status, role, and store assignment.
 
 Secure cookies are enabled unless `COOKIE_SECURE=false`. The local helper explicitly disables that flag for loopback HTTP. Deployment must use `COOKIE_SECURE=true` and HTTPS; `TRUST_PROXY=loopback` is available only when a trusted proxy connects from loopback. Configure the actual tunnel/container trust boundary when deploying. Failed logins are limited to ten per IP per fifteen minutes; the limiter is in memory and resets on API restart. Sessions persist across restarts when the secret and PostgreSQL data remain the same.
+
+## Stock and movement history
+
+Choose a location on the Stock page. Products start at zero until an administrator or that location's manager records an opening balance. The catalog seed does not invent stock counts. Record sales as positive quantities to subtract; adjustments accept signed quantities and require a reason. Movement history remains available after deactivating a product. Inactive products with remaining stock stay visible for corrective adjustments.
+
+| Method | Route | Behavior |
+| --- | --- | --- |
+| GET | /api/stock | Product/store balances; required storeId, optional q/page/pageSize |
+| POST | /api/stock/changes | Opening balance, sale, or signed adjustment |
+| PUT | /api/stock/reorder | Set a location-specific reorder point |
+| GET | /api/movements | Store-scoped history; optional q/productId/kind/page/pageSize |
+
+A change body has `requestId` (UUID), `productId`, `storeId`, `kind` (`OPENING`, `SALE`, `ADJUSTMENT`), integer `quantity`, and `note`. The note is required for adjustments. A change is capped at 1,000,000 units; zero and fractional units are rejected. Reorder bodies contain `productId`, `storeId`, and non-negative `reorderPoint`.
+
+Every change uses one transaction for the request claim, balance, and history. Duplicate identical submissions from the same user return the saved result (HTTP 200); new entries return 201. Reusing a UUID with different data, overselling, or attempting a second opening balance returns 409. Opening stock and adjustments require ADMIN or a manager assigned to that store; staff can sell at their assigned store; viewers cannot write.
+
+```sh
+npm run db:verify-ledger
+```
+
+This read-only check exits with code 1 if any balance differs from summed movements. Tests cover simultaneous sales, repeated requests, concurrent opening balances, a forced movement-write failure, and a lost-response browser retry. The UI formats movement timestamps in Africa/Lagos. Movement history has no update/delete endpoint; correct errors with another adjustment.

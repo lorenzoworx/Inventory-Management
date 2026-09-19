@@ -4,6 +4,7 @@ import { createApp } from "./app.js";
 import { Pool } from "pg";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import { transactions } from "./database.js";
 
 const envFile = fileURLToPath(new URL("../../../.env", import.meta.url));
 if (existsSync(envFile)) process.loadEnvFile(envFile);
@@ -29,7 +30,7 @@ if (webDirectory && !existsSync(`${webDirectory}/index.html`)) {
 const SessionStore = connectPgSimple(session);
 const sessionStore = new SessionStore({ pool, tableName: "web_sessions", createTableIfMissing: false });
 const app = createApp({
-  db: pool, webDirectory,
+  db: pool, transaction: transactions(pool), webDirectory,
   auth: { store: sessionStore, secret: process.env.SESSION_SECRET ?? "", secureCookies: process.env.COOKIE_SECURE !== "false" },
   trustProxy: process.env.TRUST_PROXY === "loopback"
 });

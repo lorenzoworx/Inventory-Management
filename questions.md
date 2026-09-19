@@ -49,6 +49,22 @@ This is the learning backlog. Since 2026-09-18, implementation continues without
 - [ ] Review the session-persistence test and explain what a new application instance reads from PostgreSQL.
 - [ ] Explain why test credentials and helpers refuse the development database.
 
+## 4. Stock and its history
+
+- [ ] Explain the product/store composite primary key using the same SKU at Lagos Central and Ibadan Market.
+- [ ] Trace an opening balance, a sale, and an adjustment through `stock-service.ts`, `stock-repository.ts`, and `database.ts`.
+- [ ] Explain why `+10 - 3 - 2` must produce both a balance of 5 and three history entries.
+- [ ] Review the concurrent-sales test: why can only one sale of 7 succeed when 10 are available?
+- [ ] Explain why every statement inside a PostgreSQL transaction must use the same connection.
+- [ ] Explain what rolls back when a movement insert fails after the balance update.
+- [ ] Explain why a repeated request UUID returns the previous result, and why the same UUID with different input is rejected.
+- [ ] Review the browser test that loses a successful HTTP response. Explain how retrying avoids a duplicate opening balance.
+- [ ] Explain why a new opening balance is rejected after a product's stock has been sold back down to zero.
+- [ ] Run `npm run db:verify-ledger` and explain what it checks. Distinguish the deliberate fault-injection tests from bugs in real data.
+- [ ] Explain why an adjustment needs a reason and why movement rows have no edit/delete API.
+- [ ] Explain why reorder points are location-specific and changing one does not create a stock movement.
+- [ ] Explain the difference between the balance after a historical entry and the latest balance.
+
 ## Later learning checkpoints
 
 - [ ] Authentication: distinguish identity, role permissions, and access to a particular store record. Explain why hidden buttons cannot enforce permissions.

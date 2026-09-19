@@ -2,12 +2,13 @@ import express from "express";
 import type { ApiError, HealthResponse } from "@ims/contracts";
 import { join } from "node:path";
 import { catalogRoutes } from "./catalog-routes.js";
-import type { Database } from "./catalog-repository.js";
+import type { Database, TransactionRunner } from "./database.js";
 import { errorHandler } from "./errors.js";
 import { authRoutes, requireCsrf, requireUser, sessionMiddleware, type AuthOptions } from "./auth.js";
 import { storeRoutes } from "./store-routes.js";
+import { stockRoutes } from "./stock-routes.js";
 
-export function createApp({ db, webDirectory, auth, trustProxy = false }: { db: Database; webDirectory?: string; auth: AuthOptions; trustProxy?: boolean }) {
+export function createApp({ db, transaction, webDirectory, auth, trustProxy = false }: { db: Database; transaction: TransactionRunner; webDirectory?: string; auth: AuthOptions; trustProxy?: boolean }) {
   const app = express();
   app.disable("x-powered-by");
   if (trustProxy) app.set("trust proxy", "loopback");
@@ -31,8 +32,8 @@ export function createApp({ db, webDirectory, auth, trustProxy = false }: { db: 
   app.use("/api", sessionMiddleware(auth));
   app.use("/api/auth", authRoutes(db, auth));
   const access = express.Router();
-  access.use(["/products", "/categories", "/stores"], requireUser(db), requireCsrf);
-  app.use("/api", access, catalogRoutes(db), storeRoutes(db));
+  access.use(["/products", "/categories", "/stores", "/stock", "/movements"], requireUser(db), requireCsrf);
+  app.use("/api", access, catalogRoutes(db), storeRoutes(db), stockRoutes(db, transaction));
 
   // Keep API errors as JSON, even when Express also serves the frontend.
   app.use("/api", (_request, response) => {
@@ -45,7 +46,7 @@ export function createApp({ db, webDirectory, auth, trustProxy = false }: { db: 
   if (webDirectory) {
     app.use(express.static(webDirectory));
     // React Router owns these browser URLs; missing assets must remain 404s.
-    app.get(["/", "/login", "/products", "/products/new", "/products/:id/edit", "/categories", "/stores", "/connection"], (_request, response) => {
+    app.get(["/", "/login", "/products", "/products/new", "/products/:id/edit", "/categories", "/stores", "/stock", "/movements", "/connection"], (_request, response) => {
       response.sendFile(join(webDirectory, "index.html"));
     });
   }

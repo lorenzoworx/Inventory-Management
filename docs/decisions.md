@@ -45,3 +45,9 @@ Categories and products are shared records. Quantities remain absent until the p
 Use bcrypt (cost 12) for provisioned passwords, express-session for signed opaque cookies, and connect-pg-simple for PostgreSQL persistence. Login rotates the session ID and CSRF token; logout destroys the stored session. The API reloads the active user and role/store assignment on each protected request. Catalog writes require ADMIN; store reads are scoped to the actual record, with global reads for ADMIN and VIEWER.
 
 Writes require a session-bound CSRF header, including login/logout. Cookies are HttpOnly, SameSite=Lax, and Secure unless explicitly disabled for local HTTP. The first login throttle uses an in-memory per-IP limiter for one API process; a shared limiter is needed before deploying multiple replicas. Local credentials are generated into an ignored file and never committed. Account administration and recovery flows are outside this milestone.
+
+## 011 — Couple each stock balance change to a movement in one transaction
+
+The stock feature introduces the business-service layer and a transaction runner. Each transaction reserves one pg connection, claims a request UUID, locks the product/store balance, applies a conditional quantity update, records a movement, and saves the result. Any failure rolls back all writes. Repeated identical UUIDs from the same user replay their result; different payloads or users cannot reuse one.
+
+Opening stock is permitted only before any history. Adjustments preserve history and require a reason. Inactive products with remaining stock remain visible for corrections. Reorder points live on the balance record but do not affect the movement ledger. A read-only verification command compares every balance to its movement total. The application has no movement edit/delete API; deployment database permissions and backups remain release work.
