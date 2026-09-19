@@ -2,7 +2,7 @@
 
 A full-stack inventory management project being rebuilt in small, explainable milestones from an earlier AI-assisted prototype. This repository records the new implementation and the learning behind it.
 
-**Current implementation: milestone 4 — stock and its history.** The catalog, login, and role permissions are complete. Record opening stock, sales, adjustments, and reorder points per location; browse searchable movement history. Transactions prevent negative balances, preserve matching history, and make repeated request IDs safe. Purchasing, transfers, reports, and public deployment are still planned.
+**Current implementation: milestone 5 — purchasing.** Catalog management, login, store permissions, and stock history are working. Manage suppliers, create and order purchases, receive partial deliveries, and cancel before receipt. Transactions keep stock, order counters, and movement history consistent; repeated receipt IDs are safe. Transfers, reports, and public deployment remain planned.
 
 ## Run locally
 
@@ -35,7 +35,7 @@ npm run build
 npm start
 ```
 
-Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API from the same origin. React Router handles `/products`, `/products/new`, `/products/:id/edit`, `/categories`, `/stores`, `/stock`, `/movements`, `/login`, and the original `/connection` lesson. Express serves those routes correctly on refresh. `PORT` and `HOST` can configure this production server; keep the defaults for local use.
+Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API from the same origin. React Router handles `/products`, `/products/new`, `/products/:id/edit`, `/categories`, `/stores`, `/stock`, `/movements`, `/suppliers`, `/purchases`, `/purchases/new`, `/purchases/:id`, `/login`, and the original `/connection` lesson. Express serves those routes correctly on refresh. `PORT` and `HOST` can configure this production server; keep the defaults for local use.
 
 ## Explore the request
 
@@ -52,7 +52,7 @@ npx playwright install chromium  # once per machine / browser version
 npm run check                    # lint, typecheck, database tests, build, browser tests
 ```
 
-Vitest applies migrations and seeds to `TEST_DATABASE_URL`, which must name a separate database ending in `_test`. Database and Supertest API tests roll back their changes. They cover catalog behavior plus unauthenticated requests, all non-admin catalog writes, cross-store access, live role changes, CSRF checks, login throttling, cookie security, logout, and PostgreSQL session persistence. Catalog SQL changes roll back; the auth suite uses the real PostgreSQL session store and removes its session fixtures. Run them with `npm run test:db`.
+Vitest applies migrations and seeds to `TEST_DATABASE_URL`, which must name a separate database ending in `_test`. Database and Supertest API tests roll back changes or remove their committed fixtures after concurrency checks. They cover catalog behavior plus unauthenticated requests, all non-admin catalog writes, cross-store access, live role changes, CSRF checks, login throttling, cookie security, logout, and PostgreSQL session persistence. Catalog SQL changes roll back; the auth suite uses the real PostgreSQL session store and removes its session fixtures. Run them with `npm run test:db`.
 
 Playwright runs the production app on port 4199, independent of the dev server. It also uses TEST_DATABASE_URL, applies migrations/seeds before the tests, and cleans up the catalog records its journeys create. Tests cover login/logout, protected deep links, viewer screens and forbidden writes, assigned-store views, session loss, catalog operations, error recovery, phone layouts, keyboard access, and the original connection lesson. Run them with `npm run test:e2e`. `npm test` runs both suites; GitHub Actions does the same against a PostgreSQL 18 service.
 
@@ -72,7 +72,7 @@ These are npm workspaces: one install and lockfile manage the packages together.
 
 ## Learn alongside the build
 
-All questions and practice tasks are collected in [questions.md](questions.md). Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), and [sessions and permissions lesson](docs/lessons/03-authentication.md), and [stock ledger walkthrough](docs/lessons/04-stock-ledger.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
+All questions and practice tasks are collected in [questions.md](questions.md). Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), [sessions and permissions lesson](docs/lessons/03-authentication.md), [stock ledger walkthrough](docs/lessons/04-stock-ledger.md), and [purchasing walkthrough](docs/lessons/05-purchasing.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
 
 The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo will eventually run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data.
 
@@ -95,7 +95,7 @@ This is a guided, AI-assisted rebuild. Changes are developed, tested, reviewed, 
 
 Product queries accept `q`, `categoryId`, `status=active|inactive|all`, `page`, and `pageSize`. Page size defaults to 20 and is capped at 100; pages are capped at 100,000. Search is a case-insensitive literal substring of name, SKU, or barcode. Lists sort by name and then ID. SKU, barcode, and category-name uniqueness currently remain case-sensitive.
 
-Product bodies contain `sku`, `barcode` (string or null), `name`, `unit`, `costPrice`, `sellPrice`, and numeric `categoryId`. Prices are decimal strings, non-negative, at most two fractional digits and ten integer digits. The API returns prices with two fractional digits. Free products and selling below cost are allowed; stock quantity belongs to a later product/store balance record.
+Product bodies contain `sku`, `barcode` (string or null), `name`, `unit`, `costPrice`, `sellPrice`, and numeric `categoryId`. Prices are decimal strings, non-negative, at most two fractional digits and ten integer digits. The API returns prices with two fractional digits. Free products and selling below cost are allowed; stock quantity belongs to the separate product/store balance record.
 
 Validation errors use HTTP 400, duplicate identifiers 409, missing records 404, oversized JSON bodies 413, and unexpected failures 500. Error bodies use `{ "error": { "code": "…", "message": "…", "fields": { "sku": "…" } } }`; `fields` is optional. Catalog reads require authentication; all catalog writes require ADMIN and a valid CSRF token. Public hosting remains a later release milestone.
 
@@ -110,7 +110,7 @@ Validation errors use HTTP 400, duplicate identifiers 409, missing records 404, 
 | manager@uba.example | MANAGER_PASSWORD | Read catalog; assigned to Lagos Central |
 | staff@uba.example | STAFF_PASSWORD | Read catalog; assigned to Lagos Central |
 
-The other fictional locations are Ibadan Market and Main Warehouse. Managers can record opening balances, sales, adjustments, and reorder points at their assigned store; staff can record sales there. Purchasing and transfer actions arrive later. There is no public registration, password-reset flow, or account-management UI in this milestone. Account passwords must be at least 12 characters and at most 72 UTF-8 bytes when provisioned. Test credentials are separate and can only be seeded into a database ending in `_test`.
+The other fictional locations are Ibadan Market and Main Warehouse. Managers can record opening balances, sales, adjustments, and reorder points at their assigned store; staff can record sales there. Managers can create, order, and cancel purchases at their store; managers and staff can receive them. Transfer actions arrive later. There is no public registration, password-reset flow, or account-management UI in this milestone. Account passwords must be at least 12 characters and at most 72 UTF-8 bytes when provisioned. Test credentials are separate and can only be seeded into a database ending in `_test`.
 
 | Method | Route | Behavior |
 | --- | --- | --- |
@@ -144,3 +144,30 @@ npm run db:verify-ledger
 ```
 
 This read-only check exits with code 1 if any balance differs from summed movements. Tests cover simultaneous sales, repeated requests, concurrent opening balances, a forced movement-write failure, and a lost-response browser retry. The UI formats movement timestamps in Africa/Lagos. Movement history has no update/delete endpoint; correct errors with another adjustment.
+
+
+## Suppliers and purchases
+
+Suppliers are shared contacts with optional email, phone, and address. ADMIN manages and deactivates them; all authenticated roles can read them. The seed includes two fictional suppliers. Deactivation preserves existing orders.
+
+| Method | Route | Behavior |
+| --- | --- | --- |
+| GET | /api/suppliers | Search by q; status=active/inactive/all; page/pageSize |
+| GET | /api/suppliers/:id | Read a contact |
+| POST | /api/suppliers | Create a supplier (ADMIN) |
+| PUT | /api/suppliers/:id | Update contact details (ADMIN) |
+| PATCH | /api/suppliers/:id/status | Set isActive (ADMIN) |
+| GET | /api/purchase-orders | List accessible orders; q/storeId/status/page/pageSize |
+| GET | /api/purchase-orders/:id | Read an order and its lines |
+| POST | /api/purchase-orders | Create a draft at an accessible store (ADMIN/MANAGER) |
+| POST | /api/purchase-orders/:id/order | Mark a draft ordered (ADMIN/MANAGER) |
+| POST | /api/purchase-orders/:id/cancel | Cancel before any receipt (ADMIN/MANAGER) |
+| POST | /api/purchase-orders/:id/receive | Receive whole units (ADMIN/MANAGER/STAFF at the destination) |
+
+An order body contains `supplierId`, `storeId`, optional `notes`, and 1–50 `lines` with `productId`, `orderedQty`, and decimal-string `unitCost`. Duplicate products are rejected. PostgreSQL sequences assign `PO-…` numbers; gaps are normal. Draft lines are currently fixed after creation: cancel an incorrect draft and create a replacement.
+
+A receipt body contains a UUID `requestId` and `lines` with `lineId` and positive integer `quantity`. Include only arriving lines. The whole receipt commits or rolls back together, including movement history and the order status. A replay returns the saved receipt result; reload the order to see its latest state. The browser does this automatically. New receipts return 201; identical retries return 200; invalid transitions, over-receipt, or UUID reuse with different data return 409.
+
+The lifecycle is DRAFT → ORDERED → PARTIALLY_RECEIVED → RECEIVED, with full deliveries able to skip the partial state. Cancellation is allowed only before any receipt. Creation/ordering require active suppliers and products; previously ordered goods can still be received after deactivation. Costs are snapshots on the order lines and do not update the product's catalog cost. Returns, taxes, freight, and weighted-average costing are outside this milestone.
+
+Tests include real concurrent receipts, cancellation/receipt races, a forced second-line failure with complete rollback, safe lost-response retries, and matching stock totals. Purchase movements appear in History as “Purchase receipt” with the order number. No supplier email is sent by this application.

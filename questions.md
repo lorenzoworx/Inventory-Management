@@ -65,6 +65,26 @@ This is the learning backlog. Since 2026-09-18, implementation continues without
 - [ ] Explain why reorder points are location-specific and changing one does not create a stock movement.
 - [ ] Explain the difference between the balance after a historical entry and the latest balance.
 
+## 5. Suppliers and purchasing
+
+- [ ] Trace a draft order through ordering, partial receipt, and completion using `docs/lessons/05-purchasing.md`.
+- [ ] Explain why creating a purchase order does not increase stock.
+- [ ] Explain why quantity received belongs to an order line while on-hand quantity belongs to a product/store balance.
+- [ ] Order 10 units, receive 4, then receive 6. Explain each counter and movement.
+- [ ] Explain why cancellation is rejected after any receipt, even if most units are outstanding.
+- [ ] Read the concurrent-receipt test and explain what the order row lock protects.
+- [ ] Explain what happens when cancellation and receiving arrive at the same time.
+- [ ] Explain why each receipt line calls the stock helper on the existing transaction connection.
+- [ ] Review the forced second-line failure test and list every write that rolls back.
+- [ ] Explain why replaying an earlier partial receipt returns its original result even after the order is fully received.
+- [ ] Explain why product IDs are sorted before locking multiple balances.
+- [ ] Explain why order numbers use a sequence and why gaps are valid.
+- [ ] Explain why the agreed unit cost remains unchanged when the catalog cost changes.
+- [ ] Compare supplier deactivation with deleting supplier history.
+- [ ] Explain why an existing delivery can be received after product/supplier deactivation.
+- [ ] Inspect a purchase request in the browser and identify the server checks that prevent a staff member receiving another store's order.
+- [ ] Explain why pagination buttons inside a form need `type="button"`.
+
 ## Later learning checkpoints
 
 - [ ] Authentication: distinguish identity, role permissions, and access to a particular store record. Explain why hidden buttons cannot enforce permissions.

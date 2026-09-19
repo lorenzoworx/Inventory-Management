@@ -76,7 +76,7 @@ export const okSchema = z.object({ ok: z.literal(true) });
 export const storeSchema = z.object({ id: recordIdSchema, code: z.string(), name: z.string(), kind: z.enum(["SHOP", "WAREHOUSE"]) });
 export const storeListSchema = z.object({ items: z.array(storeSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
 
-export const movementKindSchema = z.enum(["OPENING", "SALE", "ADJUSTMENT"]);
+export const movementKindSchema = z.enum(["OPENING", "SALE", "ADJUSTMENT", "PURCHASE"]);
 const stockIdentifiers = { requestId: z.uuid(), productId: recordIdSchema, storeId: recordIdSchema };
 const units = z.number().int().positive().max(1000000);
 export const stockChangeSchema = z.discriminatedUnion("kind", [
@@ -95,3 +95,42 @@ export type StockItem = z.infer<typeof stockItemSchema>;
 export const stockListSchema = z.object({ items: z.array(stockItemSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
 export const movementSchema = z.object({ id: recordIdSchema, productId: recordIdSchema, sku: z.string(), name: z.string(), kind: movementKindSchema, quantity: z.number().int(), balanceAfter: z.number().int().nonnegative(), note: z.string(), actorName: z.string(), createdAt: z.iso.datetime() });
 export const movementListSchema = z.object({ items: z.array(movementSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
+
+export const supplierInputSchema = z.strictObject({
+  name: nameSchema, email: z.email().max(254).nullable(),
+  phone: z.string().trim().min(1).max(40).nullable(), address: z.string().trim().min(1).max(500).nullable()
+});
+export type SupplierInput = z.infer<typeof supplierInputSchema>;
+export const supplierSchema = supplierInputSchema.extend({ id: recordIdSchema, isActive: z.boolean() });
+export type Supplier = z.infer<typeof supplierSchema>;
+export const supplierQuerySchema = paginationSchema.extend({ q: z.string().trim().max(100).default(""), status: z.enum(["active", "inactive", "all"]).default("active") });
+export const supplierListSchema = z.object({ items: z.array(supplierSchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
+
+export const purchaseStatusSchema = z.enum(["DRAFT", "ORDERED", "PARTIALLY_RECEIVED", "RECEIVED", "CANCELLED"]);
+export type PurchaseStatus = z.infer<typeof purchaseStatusSchema>;
+const purchaseLineInputSchema = z.strictObject({ productId: recordIdSchema, orderedQty: units, unitCost: priceInputSchema });
+export const purchaseInputSchema = z.strictObject({
+  supplierId: recordIdSchema, storeId: recordIdSchema, notes: z.string().trim().max(500).default(""),
+  lines: z.array(purchaseLineInputSchema).min(1).max(50).refine((lines) => new Set(lines.map((line) => line.productId)).size === lines.length, "Each product can appear only once.")
+});
+export type PurchaseInput = z.infer<typeof purchaseInputSchema>;
+export const purchaseReceiptSchema = z.strictObject({
+  requestId: z.uuid(),
+  lines: z.array(z.strictObject({ lineId: recordIdSchema, quantity: units })).min(1).max(50)
+    .refine((lines) => new Set(lines.map((line) => line.lineId)).size === lines.length, "Each line can appear only once.")
+});
+export type PurchaseReceipt = z.infer<typeof purchaseReceiptSchema>;
+export const purchaseQuerySchema = paginationSchema.extend({ storeId: routeIdSchema.optional(), status: purchaseStatusSchema.optional(), q: z.string().trim().max(100).default("") });
+export type PurchaseQuery = z.infer<typeof purchaseQuerySchema>;
+export const purchaseSummarySchema = z.object({
+  id: recordIdSchema, number: z.string(), supplierId: recordIdSchema, supplierName: z.string(), storeId: recordIdSchema, storeName: z.string(),
+  status: purchaseStatusSchema, notes: z.string(), createdAt: z.iso.datetime(), orderedAt: z.iso.datetime().nullable(), closedAt: z.iso.datetime().nullable(),
+  total: z.string().regex(/^\d+\.\d{2}$/)
+});
+export const purchaseSchema = purchaseSummarySchema.extend({
+  lines: z.array(purchaseLineInputSchema.extend({ id: recordIdSchema, sku: z.string(), name: z.string(), receivedQty: z.number().int().nonnegative() }))
+});
+export type PurchaseOrder = z.infer<typeof purchaseSchema>;
+export const purchaseListSchema = z.object({ items: z.array(purchaseSummarySchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
+export const purchaseReceiptResultSchema = z.object({ orderId: recordIdSchema, status: purchaseStatusSchema, movements: z.array(stockChangeResultSchema), replayed: z.boolean() });
+export type PurchaseReceiptResult = z.infer<typeof purchaseReceiptResultSchema>;

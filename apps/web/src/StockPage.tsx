@@ -7,8 +7,8 @@ import { ErrorNotice, Pagination } from "./catalog-components";
 import { useResource } from "./use-resource";
 
 const lagosTime = new Intl.DateTimeFormat("en-NG", { timeZone: "Africa/Lagos", dateStyle: "medium", timeStyle: "short" });
-const kindLabel = { OPENING: "Opening balance", SALE: "Sale", ADJUSTMENT: "Adjustment", REORDER: "Reorder point" };
-type EntryKind = keyof typeof kindLabel;
+const kindLabel = { OPENING: "Opening balance", SALE: "Sale", ADJUSTMENT: "Adjustment", PURCHASE: "Purchase receipt", REORDER: "Reorder point" };
+type EntryKind = Exclude<keyof typeof kindLabel, "PURCHASE">;
 
 export function StockPage({ history = false }: { history?: boolean }) {
   const [params, setParams] = useSearchParams();
@@ -36,7 +36,7 @@ export function StockPage({ history = false }: { history?: boolean }) {
       <form className="filters stock-filters catalog-panel" key={params.toString()} onSubmit={filter}>
         <label><span id="stock-location-label">Location</span><select aria-labelledby="stock-location-label" name="storeId" defaultValue={storeId}><option value="" disabled>Choose a location</option>{locations.state.data.items.map((store) => <option key={store.id} value={store.id}>{store.name}</option>)}</select></label>
         <label className="search-field">{history ? "Search history" : "Search stock"}<input name="q" type="search" maxLength={100} defaultValue={params.get("q") ?? ""} placeholder={history ? "Product, SKU, or reason" : "Product name or SKU"} /></label>
-        {history && <label><span id="movement-kind-label">Movement type</span><select aria-labelledby="movement-kind-label" name="kind" defaultValue={params.get("kind") ?? ""}><option value="">All movements</option>{(["OPENING", "SALE", "ADJUSTMENT"] as const).map((kind) => <option key={kind} value={kind}>{kindLabel[kind]}</option>)}</select></label>}
+        {history && <label><span id="movement-kind-label">Movement type</span><select aria-labelledby="movement-kind-label" name="kind" defaultValue={params.get("kind") ?? ""}><option value="">All movements</option>{(["OPENING", "SALE", "ADJUSTMENT", "PURCHASE"] as const).map((kind) => <option key={kind} value={kind}>{kindLabel[kind]}</option>)}</select></label>}
         <button type="submit" disabled={!storeId}>Apply filters</button>
       </form>
       {storeId && (history ? <History key={storeId} /> : <Balances key={storeId} storeId={Number(storeId)} />)}

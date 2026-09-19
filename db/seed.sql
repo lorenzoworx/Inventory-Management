@@ -23,3 +23,9 @@ INSERT INTO stores (code, name, kind) VALUES
   ('IBADAN', 'Ibadan Market', 'SHOP'),
   ('DEPOT', 'Main Warehouse', 'WAREHOUSE')
 ON CONFLICT (code) DO NOTHING;
+
+-- Fictional contacts; .example domains do not send mail to real businesses.
+INSERT INTO suppliers (name, email, phone, address) VALUES
+  ('Sunrise Pantry Supply', 'orders@sunrise.example', NULL, 'Fictional Lagos distribution centre'),
+  ('Clearwater Wholesale', 'orders@clearwater.example', NULL, 'Fictional Ibadan distribution centre')
+ON CONFLICT (name) DO NOTHING;

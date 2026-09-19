@@ -1,15 +1,16 @@
-import type { StockChange, StockChangeResult, StockItem } from "@ims/contracts";
+import type { StockChangeResult, StockItem } from "@ims/contracts";
 import type { Database } from "./database.js";
+import type { MovementInput } from "./stock-service.js";
 
 export function stockRepository(db: Database) {
   return {
     async storeExists(id: number) { return (await db.query("SELECT id FROM stores WHERE id = $1", [id])).rowCount === 1; },
     async product(id: number) { return (await db.query<{ is_active: boolean }>("SELECT is_active FROM products WHERE id = $1 FOR SHARE", [id])).rows[0]; },
-    async claim(input: StockChange, userId: number) {
+    async claim<T = StockChangeResult>(input: { requestId: string }, userId: number) {
       const claimed = await db.query("INSERT INTO stock_requests (id, user_id, payload) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING RETURNING id", [input.requestId, userId, input]);
       if (claimed.rowCount === 1) return { claimed: true as const };
       // A competing insert waits for the first transaction, so its committed result is now visible.
-      const previous = await db.query<{ matches: boolean; result: StockChangeResult }>("SELECT user_id = $2 AND payload = $3::jsonb AS matches, result FROM stock_requests WHERE id = $1", [input.requestId, userId, input]);
+      const previous = await db.query<{ matches: boolean; result: T }>("SELECT user_id = $2 AND payload = $3::jsonb AS matches, result FROM stock_requests WHERE id = $1", [input.requestId, userId, input]);
       return { claimed: false as const, previous: previous.rows[0]! };
     },
     async lockBalance(productId: number, storeId: number) {
@@ -24,12 +25,12 @@ export function stockRepository(db: Database) {
         WHERE product_id = $1 AND store_id = $2 AND quantity::bigint + $3 BETWEEN 0 AND 2147483647 RETURNING quantity`, [productId, storeId, delta]);
       return changed.rows[0]?.quantity;
     },
-    async movement(input: StockChange, delta: number, balance: number, userId: number) {
-      const row = await db.query<{ id: number }>(`INSERT INTO stock_movements (product_id, store_id, kind, quantity, balance_after, note, actor_id, request_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`, [input.productId, input.storeId, input.kind, delta, balance, input.note, userId, input.requestId]);
+    async movement(input: MovementInput, balance: number, userId: number) {
+      const row = await db.query<{ id: number }>(`INSERT INTO stock_movements (product_id, store_id, kind, quantity, balance_after, note, actor_id, request_id, purchase_order_line_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`, [input.productId, input.storeId, input.kind, input.quantity, balance, input.note, userId, input.requestId, input.purchaseOrderLineId ?? null]);
       return row.rows[0]!.id;
     },
-    async finish(requestId: string, result: StockChangeResult) { await db.query("UPDATE stock_requests SET result = $2 WHERE id = $1", [requestId, result]); },
+    async finish(requestId: string, result: unknown) { await db.query("UPDATE stock_requests SET result = $2 WHERE id = $1", [requestId, result]); },
     async reorder(productId: number, storeId: number, reorderPoint: number) {
       await db.query(`INSERT INTO stock_balances (product_id, store_id, reorder_point) VALUES ($1, $2, $3)
         ON CONFLICT (product_id, store_id) DO UPDATE SET reorder_point = EXCLUDED.reorder_point`, [productId, storeId, reorderPoint]);

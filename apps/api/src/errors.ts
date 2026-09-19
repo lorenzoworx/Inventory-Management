@@ -28,10 +28,12 @@ export const errorHandler: ErrorRequestHandler = (error: unknown, _request, resp
   if (details.code === "23505") {
     const field = details.constraint === "products_sku_key" ? "sku"
       : details.constraint === "products_barcode_key" ? "barcode" : "name";
-    const message = field === "name" ? "A category with this name already exists." : `A product with this ${field === "sku" ? "SKU" : "barcode"} already exists.`;
+    const message = field === "name" ? (details.constraint === "suppliers_name_key" ? "A supplier with this name already exists." : "A category with this name already exists.") : `A product with this ${field === "sku" ? "SKU" : "barcode"} already exists.`;
     problem = new HttpError(409, "CONFLICT", message, { [field]: message });
   } else if (details.code === "23503") {
-    problem = new HttpError(400, "INVALID_CATEGORY", "Choose an existing category.", { categoryId: "This category no longer exists." });
+    problem = details.constraint === "products_category_id_fkey"
+      ? new HttpError(400, "INVALID_CATEGORY", "Choose an existing category.", { categoryId: "This category no longer exists." })
+      : new HttpError(400, "INVALID_REFERENCE", "A referenced record does not exist or is still in use.");
   } else if (details.type === "entity.parse.failed") {
     problem = new HttpError(400, "INVALID_JSON", "The request body must be valid JSON.");
   } else if (details.type === "entity.too.large") {

@@ -51,3 +51,11 @@ Writes require a session-bound CSRF header, including login/logout. Cookies are 
 The stock feature introduces the business-service layer and a transaction runner. Each transaction reserves one pg connection, claims a request UUID, locks the product/store balance, applies a conditional quantity update, records a movement, and saves the result. Any failure rolls back all writes. Repeated identical UUIDs from the same user replay their result; different payloads or users cannot reuse one.
 
 Opening stock is permitted only before any history. Adjustments preserve history and require a reason. Inactive products with remaining stock remain visible for corrections. Reorder points live on the balance record but do not affect the movement ledger. A read-only verification command compares every balance to its movement total. The application has no movement edit/delete API; deployment database permissions and backups remain release work.
+
+## 012 — Treat each purchase receipt as one stock transaction
+
+Purchase orders preserve the prototype's draft, ordered, partially received, received, and cancelled states. A database sequence assigns numbers. Order lines store agreed decimal costs and ordered/received quantities. Only creation/ordering require active catalog records; an existing delivery can still arrive after deactivation.
+
+Receiving and cancellation lock the actual order record before checking state. Receipts claim a user-bound UUID and process products in a stable order on one connection, using the same stock-writing function as direct stock entries. All lines, balances, movements, status changes, and the request result commit together. Linked movement rows preserve the order-line reference. Replays return the previous receipt result; the browser then reloads the current order.
+
+Draft editing and supplier returns are deferred: cancel and replace an incorrect draft; correct physical stock with an explained adjustment after receipt. No new dependency is introduced for purchasing. Tests use real PostgreSQL concurrency and a deliberate later-line failure to verify complete rollback.
