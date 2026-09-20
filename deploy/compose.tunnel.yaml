@@ -1,0 +1,20 @@
+services:
+  tunnel:
+    image: cloudflare/cloudflared:2026.9.1
+    restart: unless-stopped
+    # The connector reaches Express from loopback, matching TRUST_PROXY=loopback.
+    network_mode: service:app
+    command: [tunnel, --no-autoupdate, run, --token-file, /run/secrets/tunnel-token]
+    volumes:
+      - ./.local/secrets/tunnel-token:/run/secrets/tunnel-token:ro
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      app:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

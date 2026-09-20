@@ -3,7 +3,7 @@ import type { ApiError, HealthResponse } from "@ims/contracts";
 import { join } from "node:path";
 import { catalogRoutes } from "./catalog-routes.js";
 import type { Database, TransactionRunner } from "./database.js";
-import { errorHandler } from "./errors.js";
+import { errorHandler, HttpError } from "./errors.js";
 import { authRoutes, requireCsrf, requireUser, sessionMiddleware, type AuthOptions } from "./auth.js";
 import { storeRoutes } from "./store-routes.js";
 import { stockRoutes } from "./stock-routes.js";
@@ -15,6 +15,14 @@ export function createApp({ db, transaction, webDirectory, auth, trustProxy = fa
   const app = express();
   app.disable("x-powered-by");
   if (trustProxy) app.set("trust proxy", "loopback");
+  app.use((_request, response, next) => {
+    response.set({
+      "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "strict-origin-when-cross-origin"
+    });
+    next();
+  });
   app.use("/api", (_request, response, next) => {
     response.set("Cache-Control", "no-store");
     next();
@@ -33,7 +41,20 @@ export function createApp({ db, transaction, webDirectory, auth, trustProxy = fa
   });
 
   app.use("/api", sessionMiddleware(auth));
+  app.get("/api/demo", (_request, response) => { response.json({ enabled: auth.publicDemo ?? false }); });
+  app.get("/api/ready", async (_request, response) => {
+    try {
+      await db.query("SELECT 1 FROM products LIMIT 1");
+      response.json({ status: "ready" });
+    } catch {
+      response.status(503).json({ error: { code: "NOT_READY", message: "The database is not ready." } });
+    }
+  });
   app.use("/api/auth", authRoutes(db, auth));
+  app.use("/api", (_request, _response, next) => {
+    if (auth.publicDemo && !["GET", "HEAD", "OPTIONS"].includes(_request.method)) throw new HttpError(403, "DEMO_READ_ONLY", "Inventory changes are disabled in the public demo.");
+    next();
+  });
   const access = express.Router();
   access.use(["/products", "/categories", "/stores", "/stock", "/movements", "/suppliers", "/purchase-orders", "/transfers", "/reports"], requireUser(db), requireCsrf);
   app.use("/api", access, catalogRoutes(db), storeRoutes(db), stockRoutes(db, transaction), purchaseRoutes(db, transaction), transferRoutes(db, transaction), reportRoutes(db));

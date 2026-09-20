@@ -186,3 +186,7 @@ export const movementReportSchema = z.object({
   totals: movementTotalsSchema, generatedAt: z.iso.datetime()
 });
 export type MovementReport = z.infer<typeof movementReportSchema>;
+
+// Intentionally public, read-only demo credentials. Operational passwords never enter the frontend.
+export const publicDemoCredentials = { email: "viewer@uba.example", password: "Explore-Uba-Inventory" } as const;
+export const demoConfigSchema = z.object({ enabled: z.boolean() });

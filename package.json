@@ -28,7 +28,12 @@
     "check": "npm run lint && npm run typecheck && npm test",
     "setup:local": "node --import tsx scripts/local-env.ts",
     "db:seed:users": "node --env-file-if-exists=.env --import tsx apps/api/src/provision-users.ts",
-    "db:verify-ledger": "node --env-file-if-exists=.env --import tsx scripts/verify-ledger.ts"
+    "db:verify-ledger": "node --env-file-if-exists=.env --import tsx scripts/verify-ledger.ts",
+    "db:seed:demo": "node --env-file-if-exists=.env --import tsx scripts/seed-demo.ts",
+    "setup:deploy": "npm run build -w @ims/contracts && node --import tsx scripts/deploy-env.ts",
+    "deploy": "bash scripts/deploy.sh",
+    "check:container": "bash scripts/container-check.sh",
+    "screenshots": "node --import tsx scripts/capture-portfolio.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -1,0 +1,66 @@
+name: ims
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ims_owner
+      POSTGRES_DB: ims
+      POSTGRES_PASSWORD: ${DB_OWNER_PASSWORD:?Run npm run setup:deploy}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:?Run npm run setup:deploy}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./deploy/init-db.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ims_owner -d ims"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    logging: *logging
+  app:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      DATABASE_URL: postgresql://ims_app:${DB_APP_PASSWORD:?Run npm run setup:deploy}@db:5432/${IMS_DATABASE:-ims}
+      SESSION_SECRET: ${SESSION_SECRET:?Run npm run setup:deploy}
+      COOKIE_SECURE: "true"
+      TRUST_PROXY: loopback
+      PUBLIC_DEMO: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4000/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    logging: *logging
+  ops:
+    profiles: [maintenance]
+    build:
+      context: .
+      target: ops
+    environment:
+      DATABASE_URL: postgresql://ims_owner:${DB_OWNER_PASSWORD:?Run npm run setup:deploy}@db:5432/${IMS_DATABASE:-ims}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Run npm run setup:deploy}
+      MANAGER_PASSWORD: ${MANAGER_PASSWORD:?Run npm run setup:deploy}
+      STAFF_PASSWORD: ${STAFF_PASSWORD:?Run npm run setup:deploy}
+      VIEWER_PASSWORD: ${VIEWER_PASSWORD:?Run npm run setup:deploy}
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+volumes:
+  postgres-data:

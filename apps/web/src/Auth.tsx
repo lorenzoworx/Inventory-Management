@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { okSchema, sessionSchema, type User } from "@ims/contracts";
+import { demoConfigSchema, publicDemoCredentials, okSchema, sessionSchema, type User } from "@ims/contracts";
 import { errorMessage, requestJson } from "./catalog-api";
 import { ErrorNotice } from "./catalog-components";
 import { useResource } from "./use-resource";
@@ -40,22 +40,25 @@ export function ProtectedPage({ children, admin = false }: { children: ReactNode
 
 export function LoginPage() {
   const auth = useAuth();
+  const demo = useResource("/api/demo", demoConfigSchema);
   const navigate = useNavigate();
   const location = useLocation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const requested = (location.state as { from?: unknown } | null)?.from;
   const destination = typeof requested === "string" && requested.startsWith("/") && !requested.startsWith("//") ? requested : "/products";
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const values = new FormData(event.currentTarget);
+  async function signIn(email: FormDataEntryValue | null, password: FormDataEntryValue | null) {
     setBusy(true); setError("");
     try {
-      await requestJson("/api/auth/login", sessionSchema, { method: "POST", body: JSON.stringify({ email: values.get("email"), password: values.get("password") }) });
+      await requestJson("/api/auth/login", sessionSchema, { method: "POST", body: JSON.stringify({ email, password }) });
       auth.refresh();
       navigate(destination, { replace: true });
     } catch (problem) { setError(errorMessage(problem)); }
     finally { setBusy(false); }
+  }
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); const values = new FormData(event.currentTarget);
+    void signIn(values.get("email"), values.get("password"));
   }
   if (auth.user) return <Navigate to={destination} replace />;
   return <main className="auth-shell">
@@ -63,6 +66,7 @@ export function LoginPage() {
     <div className="login-panel"><p className="eyebrow">WELCOME BACK</p><h1>Sign in to your workspace.</h1><p className="login-copy">Your catalog, locations, and inventory in one place.</p>
       {auth.error && <ErrorNotice message={auth.error} retry={auth.refresh} />}
       {error && <ErrorNotice message={error} />}
+      {demo.state.phase === "ready" && demo.state.data.enabled && <aside className="demo-welcome"><h2>Explore the portfolio demo</h2><p>Fictional stock for two shops and a warehouse. Browse every location with read-only access.</p><button type="button" disabled={busy || auth.loading || Boolean(auth.error)} onClick={() => { void signIn(publicDemoCredentials.email, publicDemoCredentials.password); }}>Explore read-only demo</button><p className="form-hint">Viewer: {publicDemoCredentials.email}<br />Password: {publicDemoCredentials.password}</p></aside>}
       <form onSubmit={(event) => { void submit(event); }}>
         <fieldset disabled={busy || auth.loading || Boolean(auth.error)}>
           <label>Email address<input type="email" name="email" autoComplete="username" maxLength={254} required /></label>

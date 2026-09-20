@@ -14,7 +14,7 @@ declare module "express-serve-static-core" { interface Request { user?: User } }
 
 const dummyHash = bcrypt.hash(randomBytes(32).toString("hex"), 12);
 
-export type AuthOptions = { store: session.Store; secret: string; secureCookies: boolean; loginLimit?: number };
+export type AuthOptions = { store: session.Store; secret: string; secureCookies: boolean; loginLimit?: number; publicDemo?: boolean };
 export function sessionMiddleware(options: AuthOptions) {
   if (options.secret.length < 32) throw new Error("SESSION_SECRET must contain at least 32 characters.");
   return session({
@@ -81,6 +81,7 @@ export function authRoutes(db: Database, options: AuthOptions) {
     if (!row?.is_active || !valid) throw new HttpError(401, "INVALID_CREDENTIALS", "Email or password is incorrect.");
     const user = await getCurrentUser(db, row.id);
     if (!user) throw new HttpError(401, "INVALID_CREDENTIALS", "Email or password is incorrect.");
+    if (options.publicDemo && user.role !== "VIEWER") throw new HttpError(403, "DEMO_READ_ONLY", "The public demo allows viewer accounts only.");
     await new Promise<void>((resolve, reject) => request.session.regenerate((error) => error ? reject(error) : resolve()));
     request.session.userId = row.id;
     const token = csrfToken(request);

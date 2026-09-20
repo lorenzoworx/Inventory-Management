@@ -324,3 +324,6 @@ textarea:focus-visible { outline: 3px solid #007b64; outline-offset: 3px; }
 .report-footer .catalog-note { margin: 0; }
 .report-footer button { flex-shrink: 0; }
 @media (max-width: 720px) { .report-footer { align-items: start; flex-direction: column; } }
+.demo-welcome { margin: 1.5rem 0; padding: 1.25rem; background: #edf5f0; border: 1px solid #c6dacf; border-radius: 12px; }
+.demo-welcome h2 { font-size: 1.1rem; margin: 0 0 .6rem; }
+.demo-welcome p { line-height: 1.6; }

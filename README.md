@@ -2,7 +2,13 @@
 
 A full-stack inventory management project being rebuilt in small, explainable milestones from an earlier AI-assisted prototype. This repository records the new implementation and the learning behind it.
 
-**Current implementation: milestone 7 — reports and usability.** Catalog, authentication, store permissions, stock history, purchasing, and transfers are working. Reports show exact on-hand valuation, low-stock attention, and 14-day movement totals using Lagos dates, with responsive tables and a daily activity chart. Portfolio release and public deployment remain planned.
+**Current implementation: milestone 8 — portfolio and deployment preparation.** Catalog, authentication, store permissions, stock history, purchasing, transfers, and reports are working. The release adds a read-only demo mode, fictional workflow fixtures, container deployment, and backup/restore commands. The public Mac mini hostname has not been connected yet.
+
+[Architecture](docs/architecture.md) · [Interview walkthrough](docs/interview-walkthrough.md) · [Deployment and recovery](docs/deployment.md) · [Build checks](https://github.com/lorenzoworx/Inventory-Management/actions)
+
+![Stock valuation with fictional inventory](docs/screenshots/valuation.png)
+
+![Transfers in pending, in-transit, and received states](docs/screenshots/transfers.png)
 
 ## Run locally
 
@@ -22,7 +28,7 @@ npm run dev
 
 Open http://127.0.0.1:5173 and sign in. Local account details are below. Vite serves React on port 5173 and forwards `/api` requests to Express on port 4000. Both bind to the local machine. Stop them with Ctrl+C.
 
-The local database helper creates its own cluster under the ignored `.local/postgres` directory and listens on `127.0.0.1:5433`. It creates `ims` for development and `ims_test` for tests. It uses trust authentication for local learning only; the later server deployment will use separate credentials and configuration. Existing PostgreSQL services are not reconfigured.
+The local database helper creates its own cluster under the ignored `.local/postgres` directory and listens on `127.0.0.1:5433`. It creates `ims` for development and `ims_test` for tests. It uses trust authentication for local learning only; the container deployment uses separate credentials and configuration. Existing PostgreSQL services are not reconfigured.
 
 `npm run db:shell` opens psql for the development database. `npm run db:stop` stops this project's cluster while preserving its data; `db:start` starts it again. These helpers always target the local cluster, while migration and seed commands use `DATABASE_URL` from the environment or `.env`.
 
@@ -43,7 +49,7 @@ Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API
 curl -i http://127.0.0.1:4000/api/health
 ```
 
-The response is HTTP 200 with JSON containing `status`, `service`, `checkedAt`, and `message`. The `/connection` page displays the message supplied by Express. This is an API process check, not a database readiness check. Unknown `/api` routes return a JSON 404.
+The response is HTTP 200 with JSON containing `status`, `service`, `checkedAt`, and `message`. The `/connection` page displays the message supplied by Express. This is an API process check. `/api/ready` checks database/catalog readiness and returns 503 while unavailable. Unknown `/api` routes return a JSON 404.
 
 ## Checks
 
@@ -72,9 +78,9 @@ These are npm workspaces: one install and lockfile manage the packages together.
 
 ## Learn alongside the build
 
-Questions and practice tasks are kept privately in the local, Git-ignored `questions.md`. Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), [sessions and permissions lesson](docs/lessons/03-authentication.md), [stock ledger walkthrough](docs/lessons/04-stock-ledger.md), [purchasing walkthrough](docs/lessons/05-purchasing.md), [transfer walkthrough](docs/lessons/06-transfers.md), and [reports walkthrough](docs/lessons/07-reports.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
+Questions and practice tasks are kept privately in the local, Git-ignored `questions.md`. Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), [sessions and permissions lesson](docs/lessons/03-authentication.md), [stock ledger walkthrough](docs/lessons/04-stock-ledger.md), [purchasing walkthrough](docs/lessons/05-purchasing.md), [transfer walkthrough](docs/lessons/06-transfers.md), [reports walkthrough](docs/lessons/07-reports.md), and [release walkthrough](docs/lessons/08-release.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
 
-The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo will eventually run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data.
+The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo is configured to run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data. Follow the [release runbook](docs/deployment.md); hosting is still pending host/domain access.
 
 ## Development approach
 
@@ -122,7 +128,7 @@ The other fictional locations are Ibadan Market and Main Warehouse. Managers can
 
 Writes, including login/logout, require the `x-csrf-token` header. The frontend fetches the current token immediately before a write; cookies travel automatically under the same origin. The session cookie is HttpOnly, SameSite=Lax, and expires after eight hours of inactivity. Identity lives in PostgreSQL, and each protected request reloads the user's current active status, role, and store assignment.
 
-Secure cookies are enabled unless `COOKIE_SECURE=false`. The local helper explicitly disables that flag for loopback HTTP. Deployment must use `COOKIE_SECURE=true` and HTTPS; `TRUST_PROXY=loopback` is available only when a trusted proxy connects from loopback. Configure the actual tunnel/container trust boundary when deploying. Failed logins are limited to ten per IP per fifteen minutes; the limiter is in memory and resets on API restart. Sessions persist across restarts when the secret and PostgreSQL data remain the same.
+Secure cookies are enabled unless `COOKIE_SECURE=false`. The local helper explicitly disables that flag for loopback HTTP. Deployment must use `COOKIE_SECURE=true` and HTTPS; `TRUST_PROXY=loopback` is available only when a trusted proxy connects from loopback. The supplied tunnel container shares the app network namespace and connects from loopback, matching this trust setting. Failed logins are limited to ten per IP per fifteen minutes; the limiter is in memory and resets on API restart. Sessions persist across restarts when the secret and PostgreSQL data remain the same.
 
 ## Stock and movement history
 
@@ -207,3 +213,20 @@ Valuation uses current catalog costs, not saved purchase costs or a historical/w
 Movement reports accept `endDate=YYYY-MM-DD` from 2000 through 2100, defaulting to today in Africa/Lagos. The window includes the ending day and the previous 13 days, from Lagos midnight inclusive through the next midnight exclusive. Opening balances, purchases, sales, adjustments in/out, and transfers in/out are shown separately. Outgoing quantities are positive magnitudes; net change is signed. These are unit totals, not revenue or profit. The current day can change as new movements arrive.
 
 Report tests use hand-calculated fixtures, exact decimal totals, timezone boundaries down to microseconds, leap day, permissions, pagination, and movements posted by the real purchase/transfer services. The browser retains filters in the URL and supports retries, empty results, keyboard access, and phone layouts.
+
+
+## Portfolio release
+
+The Docker runtime serves the compiled app with production dependencies and a separate PostgreSQL login that cannot rewrite movement history. The maintenance image handles migrations, user provisioning, fictional demo fixtures, and verification. GitHub CI additionally builds the containers, checks repeatable seeding, restores a backup into a fresh database, compares business rows and sequence positions, and checks persistent sessions after restart.
+
+```sh
+npm run setup:deploy
+npm run deploy -- build
+npm run deploy -- migrate
+npm run deploy -- seed
+IMS_LOCAL_HTTP=1 npm run deploy -- up
+```
+
+The local container preview is at http://127.0.0.1:4200. Choose **Explore read-only demo**, or use `viewer@uba.example` / `Explore-Uba-Inventory`. These public credentials belong only to the fictional demo; ordinary local-development passwords remain private. Public-demo mode rejects operational logins and inventory writes at the server.
+
+Full commands, Cloudflare setup, private backup handling, non-destructive restore, and manual deployment steps are in [Deployment and recovery](docs/deployment.md). Generate fresh screenshots from a running fictional demo with `npm run screenshots`. The [release lesson](docs/lessons/08-release.md) explains the build and recovery design. Screenshots in this README are from a local fictional release instance, not evidence of public hosting.

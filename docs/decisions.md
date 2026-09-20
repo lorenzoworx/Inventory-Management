@@ -71,3 +71,9 @@ Managers create/cancel from their source. Managers and staff dispatch at the sou
 Valuation multiplies positive on-hand balances by current catalog costs, including inactive stock and excluding goods in transit. Low-stock attention includes active products at or below their location's reorder point; a missing balance means zero quantity and zero reorder point. Each report resolves the user's accessible store scope on the server.
 
 A report's paged rows and whole-result totals are produced in one SQL statement. Monetary totals and aggregate quantities cross JSON as strings; the browser formats them without floating-point arithmetic. Movement reporting spans 14 Lagos calendar dates using inclusive start and exclusive next-day boundaries, independent of the database connection or browser time zone. A generated date series preserves zero-activity days. Date-range indexes support the new queries. The frontend provides filter URLs, exact tables, a small daily chart, retry/empty states, and responsive layouts without another dependency.
+
+## 015 — Release containers, demo boundary, and recovery
+
+Build a small production runtime image and a separate maintenance image. Express uses a restricted database login; maintenance owns migrations, user provisioning, and restore. Public-demo mode accepts viewer logins and blocks business writes independently of previously issued roles. The optional fictional workflow seed is one transaction and refuses existing inventory.
+
+Back up using PostgreSQL custom archives, excluding sessions. Restore into a fresh database, reapply grants, compare business rows/sequences, verify the ledger, then explicitly activate it. CI tests these operations and persistent restart on its own Compose stack. The Cloudflare connector shares the app network namespace so the existing loopback proxy trust is precise; no host origin/database ports are published. Real host/domain verification remains a release prerequisite.

@@ -11,3 +11,5 @@ test-results/
 *.tsbuildinfo
 .local/
 questions.md
+deploy/tunnel-token
+deploy/database

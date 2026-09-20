@@ -1,0 +1,6 @@
+# Optional loopback-only HTTP inspection on a trusted machine. Never use with the public tunnel.
+services:
+  app:
+    ports: ["127.0.0.1:${IMS_HTTP_PORT:-4200}:4000"]
+    environment:
+      COOKIE_SECURE: "false"

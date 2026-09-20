@@ -31,7 +31,7 @@ const SessionStore = connectPgSimple(session);
 const sessionStore = new SessionStore({ pool, tableName: "web_sessions", createTableIfMissing: false });
 const app = createApp({
   db: pool, transaction: transactions(pool), webDirectory,
-  auth: { store: sessionStore, secret: process.env.SESSION_SECRET ?? "", secureCookies: process.env.COOKIE_SECURE !== "false" },
+  auth: { store: sessionStore, secret: process.env.SESSION_SECRET ?? "", secureCookies: process.env.COOKIE_SECURE !== "false", publicDemo: process.env.PUBLIC_DEMO === "true" },
   trustProxy: process.env.TRUST_PROXY === "loopback"
 });
 const server = app.listen(port, host, () => {

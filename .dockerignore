@@ -1,0 +1,17 @@
+.git
+.env
+**/.env
+**/.env.*
+node_modules
+**/node_modules
+**/dist
+.local
+coverage
+playwright-report
+test-results
+questions.md
+deploy/tunnel-token
+deploy/database
+docs/screenshots
+*.log
+**/*.tsbuildinfo
