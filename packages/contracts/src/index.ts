@@ -156,3 +156,33 @@ export type Transfer = z.infer<typeof transferSchema>;
 export const transferListSchema = z.object({ items: z.array(transferSummarySchema), total: z.number().int().nonnegative(), page: z.number().int().positive(), pageSize: z.number().int().positive() });
 export const transferActionResultSchema = z.object({ transferId: recordIdSchema, status: transferStatusSchema, movements: z.array(stockChangeResultSchema), replayed: z.boolean() });
 export type TransferActionResult = z.infer<typeof transferActionResultSchema>;
+
+// Aggregated quantities and money remain strings so large SQL totals keep their exact precision.
+const countString = z.string().regex(/^\d+$/);
+const signedCountString = z.string().regex(/^-?\d+$/);
+const moneyTotal = z.string().regex(/^\d+\.\d{2}$/);
+export const reportQuerySchema = paginationSchema.extend({ storeId: routeIdSchema.optional(), q: z.string().trim().max(100).default("") });
+export type ReportQuery = z.infer<typeof reportQuerySchema>;
+export const movementReportQuerySchema = reportQuerySchema.extend({ endDate: z.iso.date().refine((date) => date >= "2000-01-01" && date <= "2100-12-31", "Choose a date from 2000 through 2100.").optional() });
+export type MovementReportQuery = z.infer<typeof movementReportQuerySchema>;
+const reportProduct = { productId: recordIdSchema, sku: z.string(), name: z.string(), unit: z.string(), storeId: recordIdSchema, storeName: z.string(), quantity: z.number().int().nonnegative() };
+export const valuationReportSchema = z.object({
+  items: z.array(z.object({ ...reportProduct, isActive: z.boolean(), costPrice: moneyTotal, value: moneyTotal })),
+  total: z.number().int().nonnegative(), totalQuantity: countString, totalValue: moneyTotal,
+  page: z.number().int().positive(), pageSize: z.number().int().positive(), generatedAt: z.iso.datetime()
+});
+export const lowStockReportSchema = z.object({
+  items: z.array(z.object({ ...reportProduct, reorderPoint: z.number().int().nonnegative() })),
+  total: z.number().int().nonnegative(), outOfStock: z.number().int().nonnegative(),
+  page: z.number().int().positive(), pageSize: z.number().int().positive(), generatedAt: z.iso.datetime()
+});
+export const movementTotalsSchema = z.object({
+  opening: countString, sales: countString, purchases: countString, adjustmentIn: countString, adjustmentOut: countString,
+  transferIn: countString, transferOut: countString, incoming: countString, outgoing: countString, net: signedCountString, movementCount: countString
+});
+export const movementReportSchema = z.object({
+  startDate: z.iso.date(), endDate: z.iso.date(), timeZone: z.literal("Africa/Lagos"),
+  days: z.array(movementTotalsSchema.extend({ date: z.iso.date() })).length(14),
+  totals: movementTotalsSchema, generatedAt: z.iso.datetime()
+});
+export type MovementReport = z.infer<typeof movementReportSchema>;

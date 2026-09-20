@@ -2,7 +2,7 @@
 
 A full-stack inventory management project being rebuilt in small, explainable milestones from an earlier AI-assisted prototype. This repository records the new implementation and the learning behind it.
 
-**Current implementation: milestone 6 — transfers.** Catalog management, login, store permissions, stock history, suppliers, and purchasing are working. Create transfers, dispatch stock from the source, and receive it at the destination with explicit stock in transit. Transactions, document locks, and request IDs protect both purchasing and transfers. Reports and public deployment remain planned.
+**Current implementation: milestone 7 — reports and usability.** Catalog, authentication, store permissions, stock history, purchasing, and transfers are working. Reports show exact on-hand valuation, low-stock attention, and 14-day movement totals using Lagos dates, with responsive tables and a daily activity chart. Portfolio release and public deployment remain planned.
 
 ## Run locally
 
@@ -35,7 +35,7 @@ npm run build
 npm start
 ```
 
-Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API from the same origin. React Router handles `/products`, `/products/new`, `/products/:id/edit`, `/categories`, `/stores`, `/stock`, `/movements`, `/suppliers`, `/purchases`, `/purchases/new`, `/purchases/:id`, `/transfers`, `/transfers/new`, `/transfers/:id`, `/login`, and the original `/connection` lesson. Express serves those routes correctly on refresh. `PORT` and `HOST` can configure this production server; keep the defaults for local use.
+Open http://127.0.0.1:4000. Express now serves the compiled frontend and the API from the same origin. React Router handles `/products`, `/products/new`, `/products/:id/edit`, `/categories`, `/stores`, `/stock`, `/movements`, `/suppliers`, `/purchases`, `/purchases/new`, `/purchases/:id`, `/transfers`, `/transfers/new`, `/transfers/:id`, `/reports/valuation`, `/reports/low-stock`, `/reports/movements`, `/login`, and the original `/connection` lesson. Express serves those routes correctly on refresh. `PORT` and `HOST` can configure this production server; keep the defaults for local use.
 
 ## Explore the request
 
@@ -72,7 +72,7 @@ These are npm workspaces: one install and lockfile manage the packages together.
 
 ## Learn alongside the build
 
-Questions and practice tasks are kept privately in the local, Git-ignored `questions.md`. Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), [sessions and permissions lesson](docs/lessons/03-authentication.md), [stock ledger walkthrough](docs/lessons/04-stock-ledger.md), [purchasing walkthrough](docs/lessons/05-purchasing.md), and [transfer walkthrough](docs/lessons/06-transfers.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
+Questions and practice tasks are kept privately in the local, Git-ignored `questions.md`. Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), [sessions and permissions lesson](docs/lessons/03-authentication.md), [stock ledger walkthrough](docs/lessons/04-stock-ledger.md), [purchasing walkthrough](docs/lessons/05-purchasing.md), [transfer walkthrough](docs/lessons/06-transfers.md), and [reports walkthrough](docs/lessons/07-reports.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
 
 The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo will eventually run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data.
 
@@ -190,3 +190,20 @@ Create with `sourceId`, `destinationId`, optional `notes`, and 1–50 `lines` co
 Dispatch and receipt bodies each contain a separate UUID `requestId`. New actions return 201, identical same-user retries return 200, and invalid transitions or reused IDs return 409. Dispatch rejects insufficient source stock and rolls back every line. Receipt likewise commits all destination movements together. Transfer actions appear in stock history with the transfer number.
 
 The lifecycle is PENDING → IN_TRANSIT → RECEIVED, or PENDING → CANCELLED. Pending transfers do not reserve stock. During transit, quantities have left the source but are not yet included at the destination. Transfer lines are fixed, and dispatch/receipt always cover all lines. Partial transfer receipts, losses in transit, and returns require future workflows.
+
+
+## Reports
+
+| Method | Route | Behavior |
+| --- | --- | --- |
+| GET | /api/reports/valuation | Positive on-hand balances × current catalog cost; includes inactive stock |
+| GET | /api/reports/low-stock | Active products at or below each location's reorder point |
+| GET | /api/reports/movements | Fourteen Lagos calendar dates, including dates with no activity |
+
+All reports accept optional `storeId` and `q` (literal product-name/SKU search). Omit storeId to include all accessible locations: ADMIN/VIEWER see all, while MANAGER/STAFF see only their assigned store. Explicit inaccessible stores return 403. Valuation and low-stock reports accept bounded `page`/`pageSize`; their summary totals cover every matching row across pages.
+
+Valuation uses current catalog costs, not saved purchase costs or a historical/weighted-average method. It excludes goods in transit until receipt. Monetary values and aggregated quantities are strings to preserve precision. Low-stock attention includes equality with the reorder point and never-stocked active products with zero quantity; inactive products are excluded from reorder attention.
+
+Movement reports accept `endDate=YYYY-MM-DD` from 2000 through 2100, defaulting to today in Africa/Lagos. The window includes the ending day and the previous 13 days, from Lagos midnight inclusive through the next midnight exclusive. Opening balances, purchases, sales, adjustments in/out, and transfers in/out are shown separately. Outgoing quantities are positive magnitudes; net change is signed. These are unit totals, not revenue or profit. The current day can change as new movements arrive.
+
+Report tests use hand-calculated fixtures, exact decimal totals, timezone boundaries down to microseconds, leap day, permissions, pagination, and movements posted by the real purchase/transfer services. The browser retains filters in the URL and supports retries, empty results, keyboard access, and phone layouts.
