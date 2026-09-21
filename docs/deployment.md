@@ -1,6 +1,8 @@
 # Deployment and recovery
 
-The release is designed for the owner's Mac mini, Docker Compose, and a named Cloudflare Tunnel. The public hostname is not configured yet. This session ran on a MacBook Pro without a container runtime; GitHub CI runs the container build, restore, and restart checks on Linux. A successful CI run does not establish that the Mac mini or public hostname has been tested.
+The application is deployed on the owner's Mac mini at [the public demo](https://boywithabot.com/projects/inventory-management/login). External HTTPS/viewer checks passed on 2026-09-21 UTC; see the [verification record](release-verification.md). GitHub CI has passed the container build, restore, and restart checks on Linux; host reboot behavior and off-machine recovery remain separate verification steps.
+
+The live site uses `/projects/inventory-management/`. The generic Compose instructions below describe a direct origin at `/`; preserve and record the host's subpath configuration before replacing the deployed build. This checkout's frontend currently defaults to root-relative routes and API URLs.
 
 ## First installation
 
@@ -57,7 +59,7 @@ The pinned cloudflared container shares the app container's network namespace. I
 
 The tunnel command recreates both app and connector so the connector cannot remain attached to an old network namespace after an app replacement. Run it after upgrades or switching databases. It intentionally causes a brief interruption. A normal container restart retains its namespace.
 
-After routing the hostname, verify HTTPS login, a Secure/HttpOnly/SameSite=Lax session cookie, logout, a forbidden write, and a refresh on `/reports/valuation` through the real public URL. Confirm only viewer credentials are shown. Check tunnel status in Cloudflare. These checks remain pending until the host and domain are available.
+After routing the hostname, verify HTTPS login, a Secure/HttpOnly/SameSite=Lax session cookie, logout, a forbidden write, and a refresh on `/reports/valuation` through the real public URL. Confirm only viewer credentials are shown. Check tunnel status in Cloudflare. Record these results against the actual public URL; deployment completion alone does not establish that each check passed.
 
 ## Back up and restore safely
 

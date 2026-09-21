@@ -36,9 +36,9 @@ These answers belong to the learner. Implementation progress and understanding a
 
 ## Session handoff
 
-- Current implementation: milestone 8 release preparation: public read-only mode, fictional workflow seeds, containers, recovery commands, and portfolio documentation. Actual Mac mini/Cloudflare hosting remains pending.
+- Current implementation: milestone 8 portfolio release: public read-only mode, fictional workflow seeds, containers, recovery commands, and portfolio documentation. The owner confirmed Mac mini deployment; external HTTPS/viewer checks passed. See `docs/release-verification.md` for the live URL and evidence.
 - Lesson 1 exercise: implemented by the learner, verified, and committed as ea684fc.
 - Discussion so far: the learner identified the schema/response mismatch and correctly placed stock quantity in a separate product/store record. Written answers above remain for the learner to complete.
 - Workflow changed on 2026-09-18: build continues because of time constraints; all learning questions/tasks are collected in the root `questions.md`. No answer is assumed or filled in for the learner.
 - Implementation explanations and actual bugs: `docs/lessons/02-catalog-api.md`, `docs/lessons/03-authentication.md`, `docs/lessons/04-stock-ledger.md`, `docs/lessons/05-purchasing.md`, `docs/lessons/06-transfers.md`, `docs/lessons/07-reports.md`, and `docs/lessons/08-release.md`.
-- Remaining release work: run the tested containers on the Mac mini, verify host restart and the public HTTPS tunnel, and confirm private off-machine backups. Host/domain details remain in the private questions.md backlog.
+- Remaining host verification: record the deployed revision and subpath configuration, confirm host restart behavior, and confirm private off-machine backups. Public viewer checks passed; host checks and learning tasks remain in the private questions.md backlog.

@@ -32,7 +32,7 @@ API source paths in the table are under `apps/api/src/` unless otherwise specifi
 
 Tests exercise real PostgreSQL concurrency, over-receipt, duplicate requests, failed second-line writes, permissions, ledger equality, exact decimals, and date boundaries. Browser journeys cover the main workflows and failure recovery. The container CI job tests the release artifact, durable sessions, backup restoration, row/sequence equality, and the application against the restored data.
 
-The system does not implement payments, tills, POS integration, CSV import, stock reservations, partial transfer receipts, lost-in-transit recovery, weighted-average costing, returns, or account-management screens. It runs as one server with in-memory login throttling. Reporting is a current inventory estimate, not a full accounting system. Deployment instructions exist, but a public demo is only live after the real Mac mini and hostname checks are completed.
+The system does not implement payments, tills, POS integration, CSV import, stock reservations, partial transfer receipts, lost-in-transit recovery, weighted-average costing, returns, or account-management screens. It runs as one server with in-memory login throttling. Reporting is a current inventory estimate, not a full accounting system. The [public demo](https://boywithabot.com/projects/inventory-management/login) passed viewer login/logout, read-only enforcement, HTTPS cookie, page refresh, and phone-layout checks. The [verification record](release-verification.md) distinguishes these results from CI tests and remaining host recovery checks.
 
 ## Development experience to discuss honestly
 

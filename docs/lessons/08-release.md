@@ -28,6 +28,6 @@ CI compares business rows and sequence positions, then points its isolated appli
 
 ## Release boundary
 
-Container checks run in GitHub CI because this session's MacBook has no container runtime. Host reboot behavior, arm64 execution, tunnel routing, public HTTPS cookies, and an off-machine backup copy still require the actual Mac mini/domain. Those remaining tasks are recorded privately, and the repository does not claim an already hosted demo.
+Container checks passed in GitHub CI; initial development ran on a MacBook without a container runtime. The owner subsequently confirmed Mac mini deployment is complete. External HTTPS/viewer checks passed at the [live demo](https://boywithabot.com/projects/inventory-management/login); the [verification record](../release-verification.md) separates those results from CI and host recovery checks. The deployed revision/subpath configuration, host reboot behavior, and off-machine recovery remain private follow-up tasks.
 
 Setup, commands, recovery procedures, and technical sources are in `docs/deployment.md`. The system diagram is in `docs/architecture.md`; the interview guide is in `docs/interview-walkthrough.md`. Questions and exercises remain private in `questions.md`.

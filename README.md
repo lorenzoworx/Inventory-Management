@@ -2,9 +2,9 @@
 
 A full-stack inventory management project being rebuilt in small, explainable milestones from an earlier AI-assisted prototype. This repository records the new implementation and the learning behind it.
 
-**Current implementation: milestone 8 — portfolio and deployment preparation.** Catalog, authentication, store permissions, stock history, purchasing, transfers, and reports are working. The release adds a read-only demo mode, fictional workflow fixtures, container deployment, and backup/restore commands. The public Mac mini hostname has not been connected yet.
+**Current implementation: milestone 8 — portfolio release.** Catalog, authentication, store permissions, stock history, purchasing, transfers, and reports are working. The application has been deployed on the owner's Mac mini. The release includes read-only demo mode, fictional workflow fixtures, containers, and backup/restore commands. The public demo has passed external viewer-access and HTTPS checks.
 
-[Architecture](docs/architecture.md) · [Interview walkthrough](docs/interview-walkthrough.md) · [Deployment and recovery](docs/deployment.md) · [Build checks](https://github.com/lorenzoworx/Inventory-Management/actions)
+[Live demo](https://boywithabot.com/projects/inventory-management/login) · [Architecture](docs/architecture.md) · [Interview walkthrough](docs/interview-walkthrough.md) · [Deployment and recovery](docs/deployment.md) · [Build checks](https://github.com/lorenzoworx/Inventory-Management/actions)
 
 ![Stock valuation with fictional inventory](docs/screenshots/valuation.png)
 
@@ -80,7 +80,7 @@ These are npm workspaces: one install and lockfile manage the packages together.
 
 Questions and practice tasks are kept privately in the local, Git-ignored `questions.md`. Unanswered exercises do not pause implementation. The [prototype map](docs/prototype-map.md), [HTTP lesson](docs/lessons/01-request-round-trip.md), [SQL lesson](docs/lessons/02-catalog-database.md), [catalog walkthrough](docs/lessons/02-catalog-api.md), [sessions and permissions lesson](docs/lessons/03-authentication.md), [stock ledger walkthrough](docs/lessons/04-stock-ledger.md), [purchasing walkthrough](docs/lessons/05-purchasing.md), [transfer walkthrough](docs/lessons/06-transfers.md), [reports walkthrough](docs/lessons/07-reports.md), and [release walkthrough](docs/lessons/08-release.md) explain the code. Keep personal explanations in [learning notes](docs/learning-notes.md); see the [roadmap](docs/roadmap.md) for remaining features.
 
-The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo is configured to run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data. Follow the [release runbook](docs/deployment.md); hosting is still pending host/domain access.
+The rebuild uses React, TypeScript, Express, and PostgreSQL with direct SQL. [Architecture decisions](docs/decisions.md) explain the choices. The public demo is configured to run in containers on a Mac mini through Cloudflare Tunnel, with read-only visitor access and fictional data. Mac mini deployment and public viewer checks are complete; see the [verification record](docs/release-verification.md) and [release runbook](docs/deployment.md) for evidence, updates, and recovery.
 
 ## Development approach
 
@@ -103,7 +103,7 @@ Product queries accept `q`, `categoryId`, `status=active|inactive|all`, `page`, 
 
 Product bodies contain `sku`, `barcode` (string or null), `name`, `unit`, `costPrice`, `sellPrice`, and numeric `categoryId`. Prices are decimal strings, non-negative, at most two fractional digits and ten integer digits. The API returns prices with two fractional digits. Free products and selling below cost are allowed; stock quantity belongs to the separate product/store balance record.
 
-Validation errors use HTTP 400, duplicate identifiers 409, missing records 404, oversized JSON bodies 413, and unexpected failures 500. Error bodies use `{ "error": { "code": "…", "message": "…", "fields": { "sku": "…" } } }`; `fields` is optional. Catalog reads require authentication; all catalog writes require ADMIN and a valid CSRF token. Public hosting remains a later release milestone.
+Validation errors use HTTP 400, duplicate identifiers 409, missing records 404, oversized JSON bodies 413, and unexpected failures 500. Error bodies use `{ "error": { "code": "…", "message": "…", "fields": { "sku": "…" } } }`; `fields` is optional. Catalog reads require authentication; all catalog writes require ADMIN and a valid CSRF token. The public deployment enables an additional application-wide write block.
 
 ## Local accounts and authentication
 
