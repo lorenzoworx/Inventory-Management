@@ -1,8 +1,10 @@
-# Uba Inventory
+# Inventory Management
 
-A full-stack inventory management project being rebuilt in small, explainable milestones from an earlier AI-assisted prototype. This repository records the new implementation and the learning behind it.
+A full-stack inventory management app for a business with several locations: a shared product catalog, location-specific stock with a full movement history, suppliers and purchasing, transfers between locations, and reports. The demo is branded **Uba Inventory**, for Uba, a fictional business with two shops and a warehouse.
 
-**Current implementation: milestone 8 — portfolio release.** Catalog, authentication, store permissions, stock history, purchasing, transfers, and reports are working. The application has been deployed on the owner's Mac mini. The release includes read-only demo mode, fictional workflow fixtures, containers, and backup/restore commands. The public demo has passed external viewer-access and HTTPS checks.
+The app was rebuilt in small, explainable milestones from an earlier AI-assisted prototype, and this repository records the implementation and the learning behind it.
+
+**Current release: milestone 8 — portfolio release.** Catalog, authentication, store permissions, stock history, purchasing, transfers, and reports are working. The application runs in containers on a Mac mini, with a read-only demo mode, fictional workflow fixtures, and backup/restore commands. The public demo has passed external viewer-access and HTTPS checks.
 
 [Live demo](https://boywithabot.com/projects/inventory-management/login) · [Architecture](docs/architecture.md) · [Interview walkthrough](docs/interview-walkthrough.md) · [Deployment and recovery](docs/deployment.md) · [Build checks](https://github.com/lorenzoworx/Inventory-Management/actions)
 
