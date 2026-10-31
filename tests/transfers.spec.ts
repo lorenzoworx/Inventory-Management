@@ -38,18 +38,22 @@ async function balance(storeId: number) {
 
 test("manager creates a transfer, source staff dispatch, and the destination receives", async ({ page }) => {
   await signIn(page, "MANAGER"); const url = await create(page);
-  await expect(page.locator(".status-badge")).toHaveText("Pending"); expect(await balance(fixture.lagos)).toBe(20);
+  await expect(page.locator(".status-badge")).toHaveText("Pending");
+  await expect(page.getByRole("img", { name: "At source · stock remains available until dispatch" })).toBeVisible();
+  expect(await balance(fixture.lagos)).toBe(20);
   await switchRole(page, "STAFF"); await page.goto(url);
   await expect(page.getByRole("button", { name: "Cancel transfer", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Confirm dispatch", exact: true }).click();
   await expect(page.locator(".status-badge")).toHaveText("In transit");
   await expect(page.getByText(/10 units are in transit/)).toBeVisible();
+  await expect(page.getByRole("img", { name: "On the way · excluded from stock on hand at both locations" })).toBeVisible();
   expect(await balance(fixture.lagos)).toBe(15); expect(await balance(fixture.ibadan)).toBe(20);
   await expect(page.getByRole("button", { name: "Confirm receipt", exact: true })).toHaveCount(0);
   await switchRole(page, "ADMIN"); await page.goto(url);
   await page.getByRole("button", { name: "Confirm receipt", exact: true }).click();
   await expect(page.locator(".status-badge")).toHaveText("Received");
   expect(await balance(fixture.ibadan)).toBe(25);
+  await expect(page.getByRole("img", { name: "At destination · added to destination stock on hand" })).toBeVisible();
   await page.reload(); await expect(page.locator(".status-badge")).toHaveText("Received");
 });
 
