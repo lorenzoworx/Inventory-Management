@@ -41,7 +41,8 @@ function Layout() {
 }
 
 export function App() {
-  return <BrowserRouter><AuthProvider><Routes>
+  const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || undefined;
+  return <BrowserRouter basename={basename}><AuthProvider><Routes>
     <Route path="/connection" element={<ConnectionPage />} />
     <Route path="/login" element={<LoginPage />} />
     <Route element={<ProtectedPage><Layout /></ProtectedPage>}>

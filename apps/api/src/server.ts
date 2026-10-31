@@ -29,10 +29,15 @@ if (webDirectory && !existsSync(`${webDirectory}/index.html`)) {
 
 const SessionStore = connectPgSimple(session);
 const sessionStore = new SessionStore({ pool, tableName: "web_sessions", createTableIfMissing: false });
+const trustProxySetting = process.env.TRUST_PROXY;
+const trustProxy = trustProxySetting === "loopback" ? "loopback" : trustProxySetting ? Number(trustProxySetting) : false;
+if (typeof trustProxy === "number" && (!Number.isInteger(trustProxy) || trustProxy < 1)) {
+  throw new Error("TRUST_PROXY must be loopback or a positive proxy-hop count.");
+}
 const app = createApp({
   db: pool, transaction: transactions(pool), webDirectory,
   auth: { store: sessionStore, secret: process.env.SESSION_SECRET ?? "", secureCookies: process.env.COOKIE_SECURE !== "false", publicDemo: process.env.PUBLIC_DEMO === "true" },
-  trustProxy: process.env.TRUST_PROXY === "loopback"
+  trustProxy
 });
 const server = app.listen(port, host, () => {
   console.log(`Uba Inventory API listening at http://${host}:${port}`);

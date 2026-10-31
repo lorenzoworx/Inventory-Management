@@ -1,12 +1,16 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
+ARG BASE_PATH=/
+ENV BASE_PATH=${BASE_PATH}
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 RUN npm ci
 COPY . .
-RUN npm run build
+RUN npm run build -w @ims/contracts \
+    && npm run build -w @ims/api \
+    && npm run build -w @ims/web -- --base="${BASE_PATH}"
 
 # Maintenance commands need TypeScript and migration tooling, but never serve HTTP.
 FROM build AS ops

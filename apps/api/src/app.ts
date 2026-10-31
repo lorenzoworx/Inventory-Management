@@ -11,10 +11,10 @@ import { reportRoutes } from "./report-routes.js";
 import { transferRoutes } from "./transfer-routes.js";
 import { purchaseRoutes } from "./purchase-routes.js";
 
-export function createApp({ db, transaction, webDirectory, auth, trustProxy = false }: { db: Database; transaction: TransactionRunner; webDirectory?: string; auth: AuthOptions; trustProxy?: boolean }) {
+export function createApp({ db, transaction, webDirectory, auth, trustProxy = false }: { db: Database; transaction: TransactionRunner; webDirectory?: string; auth: AuthOptions; trustProxy?: boolean | string | number }) {
   const app = express();
   app.disable("x-powered-by");
-  if (trustProxy) app.set("trust proxy", "loopback");
+  if (trustProxy) app.set("trust proxy", trustProxy === true ? "loopback" : trustProxy);
   app.use((_request, response, next) => {
     response.set({
       "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
