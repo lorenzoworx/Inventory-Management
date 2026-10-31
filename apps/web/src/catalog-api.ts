@@ -1,5 +1,7 @@
 import { apiErrorSchema, categoryListSchema, sessionSchema, type Category } from "@ims/contracts";
 
+const apiBase = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 export type ResponseSchema<T> = { parse(value: unknown): T };
 export class RequestError extends Error {
   constructor(message: string, public fields: Record<string, string> = {}, options?: ErrorOptions) { super(message, options); }
@@ -14,7 +16,7 @@ export async function requestJson<T>(url: string, schema: ResponseSchema<T>, opt
     const current = await requestJson("/api/auth/session", sessionSchema, { signal });
     headers.set("x-csrf-token", current.csrfToken);
   }
-  const response = await fetch(url, {
+  const response = await fetch(`${apiBase}${url}`, {
     ...options, cache: "no-store", signal, headers
   });
   let body: unknown;

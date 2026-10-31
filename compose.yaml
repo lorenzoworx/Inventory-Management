@@ -23,6 +23,7 @@ services:
       retries: 12
     logging: *logging
   app:
+    image: ${IMS_APP_IMAGE:-personal-web-inventory-management:local}
     build:
       context: .
       target: runtime
@@ -49,6 +50,7 @@ services:
     logging: *logging
   ops:
     profiles: [maintenance]
+    image: ${IMS_OPS_IMAGE:-personal-web-inventory-ops:local}
     build:
       context: .
       target: ops

@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -55,6 +56,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Build the portfolio subpath image
+        run: |
+          docker build --target runtime --build-arg BASE_PATH=/projects/inventory-management/ --tag inventory-subpath:smoke .
+          docker run --rm --entrypoint node inventory-subpath:smoke -e "const fs=require('node:fs'); const html=fs.readFileSync('/app/apps/web/dist/index.html','utf8'); if(!html.includes('/projects/inventory-management/assets/')) process.exit(1)"
       - run: npm run check:container
       - name: Container logs on failure
         if: failure()
@@ -67,3 +72,27 @@ jobs:
       - name: Remove isolated CI containers and data
         if: always()
         run: docker compose --env-file .local/container-check.env -p "ims-ci-${GITHUB_RUN_ID}" -f compose.yaml -f deploy/compose.local.yaml down --volumes
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: container
+    runs-on: [self-hosted, macOS, ARM64, inventory-production]
+    timeout-minutes: 35
+    concurrency:
+      group: inventory-production
+      cancel-in-progress: false
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}/projects/inventory-management/
+    steps:
+      - name: Check out the verified commit
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Deploy and verify the exact commit
+        env:
+          DEPLOY_STACK_DIR: ${{ vars.DEPLOY_STACK_DIR }}
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+          chmod -R a+rX "$GITHUB_WORKSPACE"
+          lockf -t 3600 -k /tmp/boywithabot-production-deploy.lock bash scripts/deploy-production.sh

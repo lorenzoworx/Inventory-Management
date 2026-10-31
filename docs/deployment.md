@@ -2,7 +2,10 @@
 
 The application is deployed on the owner's Mac mini at [the public demo](https://boywithabot.com/projects/inventory-management/login). External HTTPS/viewer checks passed on 2026-09-21 UTC; see the [verification record](release-verification.md). GitHub CI has passed the container build, restore, and restart checks on Linux; host reboot behavior and off-machine recovery remain separate verification steps.
 
-The live site uses `/projects/inventory-management/`. The generic Compose instructions below describe a direct origin at `/`; preserve and record the host's subpath configuration before replacing the deployed build. This checkout's frontend currently defaults to root-relative routes and API URLs.
+The live site uses `/projects/inventory-management/`. The Docker build accepts
+`BASE_PATH=/projects/inventory-management/`, which compiles matching asset,
+router, and API URLs. The host override also records the trusted Caddy hop and
+proxy network; direct-origin deployments keep the default `/` base.
 
 ## First installation
 
@@ -94,7 +97,14 @@ npm run deploy -- tunnel
 
 Record the current Git commit and active database. Back up first. Fetch the repository and check out the exact commit whose **check** and **container** CI jobs passed. Then run build, migrate, up, verify, check-role, and tunnel. Do not reseed an established inventory. Keep the deployment commit recorded in host operations notes.
 
-Migrations are forward-only in this runbook. Rolling back application code is only safe if it remains compatible with the database. For an incompatible change, restore the pre-deployment backup into a fresh database and activate it with matching code. No automatic update job or destructive rollback command is installed.
+Migrations are forward-only in this runbook. Rolling back application code is only safe if it remains compatible with the database. For an incompatible change, restore the pre-deployment backup into a fresh database and activate it with matching code.
+
+Pushes to `main` deploy only after both CI jobs pass. The dedicated host runner
+backs up the active database, builds the triggering commit with the portfolio
+base path, applies migrations and grants, verifies the ledger and runtime role,
+smoke-tests a candidate, then verifies public viewer access and write blocking.
+The previous compatible application image is restored automatically if a
+post-promotion check fails; database migrations are never reversed automatically.
 
 ## Health, logs, and limitations
 

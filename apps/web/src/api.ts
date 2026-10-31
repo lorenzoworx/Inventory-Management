@@ -1,7 +1,9 @@
 import { healthResponseSchema, type HealthResponse } from "@ims/contracts";
 
+const apiBase = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 export async function getHealth(signal: AbortSignal): Promise<HealthResponse> {
-  const response = await fetch("/api/health", { signal, cache: "no-store" });
+  const response = await fetch(`${apiBase}/api/health`, { signal, cache: "no-store" });
 
   // fetch rejects network failures, but an HTTP 500 still resolves normally.
   if (!response.ok) {
