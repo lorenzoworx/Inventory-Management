@@ -232,3 +232,11 @@ IMS_LOCAL_HTTP=1 npm run deploy -- up
 The local container preview is at http://127.0.0.1:4200. Choose **Explore read-only demo**, or use `viewer@uba.example` / `Explore-Uba-Inventory`. These public credentials belong only to the fictional demo; ordinary local-development passwords remain private. Public-demo mode rejects operational logins and inventory writes at the server.
 
 Full commands, Cloudflare setup, private backup handling, non-destructive restore, and manual deployment steps are in [Deployment and recovery](docs/deployment.md). Generate fresh screenshots from a running fictional demo with `npm run screenshots`. The [release lesson](docs/lessons/08-release.md) explains the build and recovery design. Screenshots in this README are from a local fictional release instance, not evidence of public hosting.
+
+## Visual refresh: routes and shelf labels
+
+The interface now uses a green navigation rail, shipping labels, building drawings, and a route diagram driven by the returned transfer status. The diagram is schematic, not geographic. Pending leaves goods at the source, dispatch places the parcel between locations, and receipt places it at the destination. Cancelled transfers show no parcel. The route animates only after a previously observed status changes, with reduced motion respected. Transfer actions, permissions, idempotence, and SQL transactions remain unchanged.
+
+Stock bins display the returned on-hand count and reorder marker. Each gauge explicitly identifies its scale (the larger of current stock, twice the reorder point, or one unit); it does not imply storage capacity. Low-stock flags retain the existing `quantity <= reorderPoint` rule. Signed movement quantities remain visible and now have incoming/outgoing colors as a second cue.
+
+The full location, transfer, stock, purchasing, and report tables remain available. Route labels use only authorized transfer responses. All browser checks use a separate test database. Learning questions remain open in the private `questions.md`.

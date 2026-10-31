@@ -1,3 +1,4 @@
+import { BinGauge } from "./BinGauge";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { movementListSchema, okSchema, stockChangeResultSchema, stockChangeSchema, stockListSchema, storeListSchema, type StockItem } from "@ims/contracts";
@@ -58,7 +59,7 @@ function Balances({ storeId }: { storeId: number }) {
     <section className="catalog-panel">
       {result.items.length === 0 ? <div className="empty-state"><h2>No matching products</h2><p>Change the search or add products to the shared catalog.</p></div> : <div className="table-scroll" role="region" aria-label="Stock balances" tabIndex={0}><table className="product-table"><thead><tr><th>Product</th><th className="number">On hand</th><th className="number">Reorder point</th><th>Status</th>{role !== "VIEWER" && <th>Actions</th>}</tr></thead><tbody>{result.items.map((item) => <tr key={item.productId}>
         <th scope="row"><span className="product-name">{item.name}</span><span className="product-detail">{item.sku} · {item.unit}{!item.isActive && " · Inactive product"}</span></th>
-        <td className="number stock-quantity">{item.quantity}</td><td className="number">{item.reorderPoint}</td>
+        <td className="number stock-quantity">{item.quantity}<BinGauge quantity={item.quantity} reorderPoint={item.reorderPoint} /></td><td className="number">{item.reorderPoint}</td>
         <td><span className={`stock-state ${item.quantity <= item.reorderPoint ? "low" : ""}`}>{item.quantity === 0 ? "Out of stock" : item.quantity <= item.reorderPoint ? "Low stock" : "Available"}</span></td>
         {role !== "VIEWER" && <td><div className="row-actions"><button className="text-button" aria-label={`Record change for ${item.name}`} disabled={role === "STAFF" && !item.isActive} onClick={() => setEntry({ item, kind: !item.isActive ? "ADJUSTMENT" : item.hasMovements || role === "STAFF" ? "SALE" : "OPENING" })}>Record change</button>{role !== "STAFF" && <button className="text-button" aria-label={`Set reorder point for ${item.name}`} onClick={() => setEntry({ item, kind: "REORDER" })}>Reorder point</button>}</div></td>}
       </tr>)}</tbody></table></div>}
@@ -120,7 +121,7 @@ function History() {
   const result = history.state.data;
   return <section className="catalog-panel">
     {result.items.length === 0 ? <div className="empty-state"><h2>No movements found</h2><p>Recorded stock changes will appear here.</p></div> : <div className="table-scroll" role="region" aria-label="Stock history" tabIndex={0}><table className="product-table"><thead><tr><th>When · Lagos</th><th>Product</th><th>Movement</th><th className="number">Change</th><th className="number">Balance after</th><th>Recorded by / reason</th></tr></thead><tbody>{result.items.map((movement) => <tr key={movement.id}>
-      <td className="movement-time">{lagosTime.format(new Date(movement.createdAt))}</td><th scope="row">{movement.name}<span className="product-detail">{movement.sku}</span></th><td>{kindLabel[movement.kind]}</td><td className="number">{movement.quantity > 0 ? "+" : ""}{movement.quantity}</td><td className="number">{movement.balanceAfter}</td><td className="movement-note">{movement.actorName}<span className="product-detail">{movement.note || "—"}</span></td>
+      <td className="movement-time">{lagosTime.format(new Date(movement.createdAt))}</td><th scope="row">{movement.name}<span className="product-detail">{movement.sku}</span></th><td>{kindLabel[movement.kind]}</td><td className={`number ledger-change ${movement.quantity < 0 ? "outgoing" : "incoming"}`}>{movement.quantity > 0 ? "+" : ""}{movement.quantity}</td><td className="number">{movement.balanceAfter}</td><td className="movement-note">{movement.actorName}<span className="product-detail">{movement.note || "—"}</span></td>
     </tr>)}</tbody></table></div>}
     <Pagination {...result} changePage={(page) => { const next = new URLSearchParams(params); next.set("page", String(page)); setParams(next); }} />
   </section>;

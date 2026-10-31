@@ -38,3 +38,11 @@ Provide migration, seed, ledger verification, backup, restore, and deployment co
 ## Deferred beyond the first release
 
 CSV ingestion, shadow stores, till reconciliation, advanced chain analytics, POS integration, lot/expiry tracking, and multi-currency support.
+
+## Visual refresh: routes and shelf labels
+
+The interface now uses a green navigation rail, shipping labels, building drawings, and a route diagram driven by the returned transfer status. The diagram is schematic, not geographic. Pending leaves goods at the source, dispatch places the parcel between locations, and receipt places it at the destination. Cancelled transfers show no parcel. The route animates only after a previously observed status changes, with reduced motion respected. Transfer actions, permissions, idempotence, and SQL transactions remain unchanged.
+
+Stock bins display the returned on-hand count and reorder marker. Each gauge explicitly identifies its scale (the larger of current stock, twice the reorder point, or one unit); it does not imply storage capacity. Low-stock flags retain the existing `quantity <= reorderPoint` rule. Signed movement quantities remain visible and now have incoming/outgoing colors as a second cue.
+
+The full location, transfer, stock, purchasing, and report tables remain available. Route labels use only authorized transfer responses. All browser checks use a separate test database. Learning questions remain open in the private `questions.md`.

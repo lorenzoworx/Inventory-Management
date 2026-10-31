@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { storeListSchema, transferActionResultSchema, transferInputSchema, transferListSchema, transferSchema, transferStatusSchema, type Product, type Transfer } from "@ims/contracts";
 import { useAuth } from "./Auth";
 import { requestJson, errorMessage } from "./catalog-api";
 import { ErrorNotice, Pagination } from "./catalog-components";
 import { useResource } from "./use-resource";
+import { TransferJourney, type JourneyHistory } from "./TransferJourney";
 import { ProductPicker } from "./ProductPicker";
 
 const labels = { PENDING: "Pending", IN_TRANSIT: "In transit", RECEIVED: "Received", CANCELLED: "Cancelled" };
@@ -13,10 +14,17 @@ function useCanCreate() { const role = useAuth().user!.role; return role === "AD
 
 export function TransfersPage() {
   const canCreate = useCanCreate();
+  const history = useRef(new Map<number, Transfer["status"]>());
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [params, setParams] = useSearchParams();
   const transfers = useResource(`/api/transfers?${params}`, transferListSchema);
+  const selected = transfers.state.phase === "ready" ? transfers.state.data.items.find((item) => item.id === selectedId) ?? transfers.state.data.items[0] : undefined;
   return <>
     <section className="page-heading"><div><p className="eyebrow">INVENTORY</p><h1>Transfers</h1><p>Follow stock from dispatch at one location to arrival at another.</p></div>{canCreate && <Link className="button-link" to="/transfers/new">New transfer</Link>}</section>
+    {transfers.state.phase === "ready" && transfers.state.data.items.length > 0 && <>
+      <TransferJourney transfer={selected!} history={history} />
+      <div className="transfer-labels" aria-label="Transfer labels">{transfers.state.data.items.slice(0, 6).map((item) => <button className="shipping-label" key={item.id} aria-label={`Show ${item.number} on route`} aria-pressed={item.id === selected?.id} onClick={() => setSelectedId(item.id)}><span className={`label-stamp state-${item.status.toLowerCase()}`}>{labels[item.status]}</span><strong>{item.number}</strong><span>From <b>{item.sourceName}</b></span><span>To <b>{item.destinationName}</b></span><small>{item.totalUnits} units · {time.format(new Date(item.createdAt))}</small></button>)}</div>
+    </>}
     <section className="catalog-panel">
       <form className="filters" key={params.toString()} onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); const next = new URLSearchParams({ q: String(data.get("q") ?? "") }); const status = String(data.get("status") ?? ""); if (status) next.set("status", status); setParams(next); }}>
         <label className="search-field">Search transfers<input type="search" name="q" defaultValue={params.get("q") ?? ""} maxLength={100} placeholder="Transfer number or location" /></label>
@@ -69,14 +77,15 @@ export function NewTransferPage() {
 }
 
 export function TransferDetailPage() {
+  const history = useRef(new Map<number, Transfer["status"]>());
   const { id } = useParams(); const transfer = useResource(`/api/transfers/${id}`, transferSchema);
   return <>
     {transfer.state.phase === "loading" && <p role="status" className="empty-state">Loading transfer…</p>}
     {transfer.state.phase === "error" && <ErrorNotice message={transfer.state.message} retry={transfer.reload} />}
-    {transfer.state.phase === "ready" && <TransferDetail transfer={transfer.state.data} reload={transfer.reload} />}
+    {transfer.state.phase === "ready" && <TransferDetail transfer={transfer.state.data} reload={transfer.reload} history={history} />}
   </>;
 }
-function TransferDetail({ transfer, reload }: { transfer: Transfer; reload: () => void }) {
+function TransferDetail({ transfer, reload, history }: { transfer: Transfer; reload: () => void; history: JourneyHistory }) {
   const user = useAuth().user!;
   const canSource = user.role === "ADMIN" || (user.role !== "VIEWER" && user.storeId === transfer.sourceId);
   const canDestination = user.role === "ADMIN" || (user.role !== "VIEWER" && user.storeId === transfer.destinationId);
@@ -84,6 +93,7 @@ function TransferDetail({ transfer, reload }: { transfer: Transfer; reload: () =
   const action = transfer.status === "PENDING" && canSource ? "dispatch" : transfer.status === "IN_TRANSIT" && canDestination ? "receive" : null;
   return <>
     <section className="page-heading"><div><Link className="back-link" to="/transfers">← Transfers</Link><p className="eyebrow">STOCK TRANSFER</p><h1>{transfer.number}</h1><p>{transfer.sourceName} → {transfer.destinationName}</p></div><span className="status-badge">{labels[transfer.status]}</span></section>
+    <TransferJourney transfer={transfer} history={history} />
     <section className="catalog-panel"><div className="table-caption"><h2>Transfer details</h2><span>Created {time.format(new Date(transfer.createdAt))} · Lagos</span></div>
       <div className="table-scroll" role="region" aria-label="Transfer lines" tabIndex={0}><table className="transfer-table"><thead><tr><th>Product</th><th className="number">Quantity</th></tr></thead><tbody>{transfer.lines.map((line) => <tr key={line.id}><th scope="row">{line.name}<span className="product-detail">{line.sku}</span></th><td className="number">{line.quantity}</td></tr>)}</tbody></table></div>
       <div className="transfer-progress"><p>{transfer.status === "PENDING" ? "Stock remains available at the source until dispatch." : transfer.status === "IN_TRANSIT" ? `${transfer.totalUnits} units are in transit. They have left the source and are not yet available at the destination.` : transfer.status === "RECEIVED" ? "All transfer lines have arrived and are available at the destination." : "This transfer was cancelled before dispatch. No stock moved."}</p>

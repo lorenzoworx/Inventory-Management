@@ -42,3 +42,11 @@ These answers belong to the learner. Implementation progress and understanding a
 - Workflow changed on 2026-09-18: build continues because of time constraints; all learning questions/tasks are collected in the root `questions.md`. No answer is assumed or filled in for the learner.
 - Implementation explanations and actual bugs: `docs/lessons/02-catalog-api.md`, `docs/lessons/03-authentication.md`, `docs/lessons/04-stock-ledger.md`, `docs/lessons/05-purchasing.md`, `docs/lessons/06-transfers.md`, `docs/lessons/07-reports.md`, and `docs/lessons/08-release.md`.
 - Remaining host verification: record the deployed revision and subpath configuration, confirm host restart behavior, and confirm private off-machine backups. Public viewer checks passed; host checks and learning tasks remain in the private questions.md backlog.
+
+## Visual refresh: routes and shelf labels
+
+The interface now uses a green navigation rail, shipping labels, building drawings, and a route diagram driven by the returned transfer status. The diagram is schematic, not geographic. Pending leaves goods at the source, dispatch places the parcel between locations, and receipt places it at the destination. Cancelled transfers show no parcel. The route animates only after a previously observed status changes, with reduced motion respected. Transfer actions, permissions, idempotence, and SQL transactions remain unchanged.
+
+Stock bins display the returned on-hand count and reorder marker. Each gauge explicitly identifies its scale (the larger of current stock, twice the reorder point, or one unit); it does not imply storage capacity. Low-stock flags retain the existing `quantity <= reorderPoint` rule. Signed movement quantities remain visible and now have incoming/outgoing colors as a second cue.
+
+The full location, transfer, stock, purchasing, and report tables remain available. Route labels use only authorized transfer responses. All browser checks use a separate test database. Learning questions remain open in the private `questions.md`.
